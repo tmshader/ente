@@ -1,0 +1,35 @@
+name: "Sync upstream repo"
+
+on:
+  schedule:
+    # Run everyday day.
+    #
+    # First field is minute, second is hour of the day. Last is day of week,
+    # 0 being Sunday.
+    #
+    # Add a few minutes of offset to avoid scheduling on exact hourly
+    # boundaries (recommended by GitHub to avoid congestion).
+    #
+    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+    # https://crontab.guru/
+    #
+    - cron: "13 4 * * *"
+  # Also allow manually running the workflow
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.SYNC_PAT }}
+      - name: Sync upstream repo
+        run: gh repo sync shoetten/ente
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_PAT }}
