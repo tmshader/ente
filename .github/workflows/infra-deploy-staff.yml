@@ -2,11 +2,11 @@ name: "Deploy (staff)"
 
 on:
     # Run on every push to main that changes infra/staff/
-    push:
-        branches: [main]
-        paths:
-            - "infra/staff/**"
-            - ".github/workflows/infra-deploy-staff.yml"
+    # push:
+    #     branches: [main]
+    #     paths:
+    #         - "infra/staff/**"
+    #         - ".github/workflows/infra-deploy-staff.yml"
     # Also allow manually running the workflow
     workflow_dispatch:
 

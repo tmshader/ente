@@ -1,14 +1,14 @@
 name: "Sync Crowdin translations (web)"
 
 on:
-    push:
-        branches: [main]
-        paths:
-            # Run workflow when web's en-US/translation.json is changed
-            - "web/packages/next/locales/en-US/translation.json"
-            # Or the workflow itself is changed
-            - ".github/workflows/web-crowdin.yml"
-    schedule:
+    # push:
+    #     branches: [main]
+    #     paths:
+    #         # Run workflow when web's en-US/translation.json is changed
+    #         - "web/packages/next/locales/en-US/translation.json"
+    #         # Or the workflow itself is changed
+    #         - ".github/workflows/web-crowdin.yml"
+    # schedule:
         # [Note: Run workflow on specific days of the week]
         #
         # The last (5th) component of the cron syntax denotes the day of the
@@ -16,7 +16,7 @@ on:
         # and FRI, this can be set to `2,5`.
         #
         # See also: [Note: Run workflow every 24 hours]
-        - cron: "20 1 * * 2,5"
+        # - cron: "20 1 * * 2,5"
     # Also allow manually running the workflow
     workflow_dispatch:
 

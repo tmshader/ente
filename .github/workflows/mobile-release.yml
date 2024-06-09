@@ -2,11 +2,11 @@ name: "Release (photos independent)"
 
 on:
     workflow_dispatch: # Allow manually running the action
-    push:
-        # Run when a tag matching the pattern "photos-v*"" is pushed
-        # See: [Note: Testing release workflows that are triggered by tags]
-        tags:
-            - "photos-v*"
+    # push:
+    #     # Run when a tag matching the pattern "photos-v*"" is pushed
+    #     # See: [Note: Testing release workflows that are triggered by tags]
+    #     tags:
+    #         - "photos-v*"
 
 env:
     FLUTTER_VERSION: "3.22.1"
