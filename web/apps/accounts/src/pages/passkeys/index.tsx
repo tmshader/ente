@@ -31,7 +31,7 @@ import {
 } from "services/passkey";
 
 const Page: React.FC = () => {
-    const { showNavBar } = useAppContext();
+    const { showNavBar, setDialogBoxAttributesV2 } = useAppContext();
 
     const [passkeys, setPasskeys] = useState<Passkey[]>([]);
     const [showPasskeyDrawer, setShowPasskeyDrawer] = useState(false);
@@ -46,6 +46,11 @@ const Page: React.FC = () => {
             setPasskeys(await getPasskeys());
         } catch (e) {
             log.error("Failed to fetch passkeys", e);
+            setDialogBoxAttributesV2({
+                title: t("ERROR"),
+                content: t("passkey_fetch_failed"),
+                close: {},
+            });
         }
     };
 
@@ -91,12 +96,11 @@ const Page: React.FC = () => {
             // If the user cancels the operation, then an error with name
             // "NotAllowedError" is thrown.
             //
-            // Ignore this, but in other cases add an error indicator to the add
-            // passkey text field. The browser is expected to already have shown
-            // an error dialog to the user.
+            // Ignore these, but in other cases add an error indicator to the
+            // add passkey text field. The browser is expected to already have
+            // shown an error dialog to the user.
             if (!(e instanceof Error && e.name == "NotAllowedError")) {
-                // TODO-PK: localize
-                setFieldError("Could not add passkey");
+                setFieldError(t("passkey_add_failed"));
             }
             return;
         }
@@ -109,13 +113,13 @@ const Page: React.FC = () => {
             <CenteredFlex>
                 <Box maxWidth="20rem">
                     <Box marginBottom="1rem">
-                        <Typography>{t("PASSKEYS_DESCRIPTION")}</Typography>
+                        <Typography>{t("passkeys_description")}</Typography>
                     </Box>
                     <FormPaper style={{ padding: "1rem" }}>
                         <SingleInputForm
                             fieldType="text"
-                            placeholder={t("ENTER_PASSKEY_NAME")}
-                            buttonText={t("ADD_PASSKEY")}
+                            placeholder={t("enter_passkey_name")}
+                            buttonText={t("add_passkey")}
                             initialValue={""}
                             callback={handleSubmit}
                             submitButtonProps={{ sx: { marginBottom: 1 } }}
@@ -232,8 +236,7 @@ const ManagePasskeyDrawer: React.FC<ManagePasskeyDrawerProps> = ({
                     <Stack spacing={"4px"} py={"12px"}>
                         <Titlebar
                             onClose={onClose}
-                            // TODO-PK: Localize (more below too)
-                            title="Manage Passkey"
+                            title={t("manage_passkey")}
                             onRootClose={onClose}
                         />
                         <InfoItem
@@ -251,7 +254,7 @@ const ManagePasskeyDrawer: React.FC<ManagePasskeyDrawerProps> = ({
                                     setShowRenameDialog(true);
                                 }}
                                 startIcon={<EditIcon />}
-                                label={"Rename Passkey"}
+                                label={t("rename_passkey")}
                             />
                             <MenuItemDivider />
                             <EnteMenuItem
@@ -259,7 +262,7 @@ const ManagePasskeyDrawer: React.FC<ManagePasskeyDrawerProps> = ({
                                     setShowDeleteDialog(true);
                                 }}
                                 startIcon={<DeleteIcon />}
-                                label={"Delete Passkey"}
+                                label={t("delete_passkey")}
                                 color="critical"
                             />
                         </MenuItemGroup>
@@ -326,12 +329,12 @@ const RenamePasskeyDialog: React.FC<RenamePasskeyDialogProps> = ({
         <DialogBoxV2
             fullWidth
             {...{ open, onClose, fullScreen }}
-            attributes={{ title: t("RENAME_PASSKEY") }}
+            attributes={{ title: t("rename_passkey") }}
         >
             <SingleInputForm
                 initialValue={passkey.friendlyName}
                 callback={handleSubmit}
-                placeholder={t("ENTER_PASSKEY_NAME")}
+                placeholder={t("enter_passkey_name")}
                 buttonText={t("RENAME")}
                 fieldType="text"
                 secondaryButtonAction={onClose}
@@ -377,10 +380,10 @@ const DeletePasskeyDialog: React.FC<DeletePasskeyDialogProps> = ({
         <DialogBoxV2
             fullWidth
             {...{ open, onClose, fullScreen }}
-            attributes={{ title: t("DELETE_PASSKEY") }}
+            attributes={{ title: t("delete_passkey") }}
         >
             <Stack spacing={"8px"}>
-                <Typography>{t("DELETE_PASSKEY_CONFIRMATION")}</Typography>
+                <Typography>{t("delete_passkey_confirmation")}</Typography>
                 <EnteButton
                     type="submit"
                     size="large"

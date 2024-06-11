@@ -55,9 +55,8 @@ used.** This restriction is a byproduct of the enablement for automatic login.
 ### Automatically logging into Ente Accounts
 
 Clients open a WebView with the URL
-`https://accounts.ente.io/passkeys/handoff?client=<clientPackageName>&token=<accountsToken>`.
-This page will parse the token and client package name for usage in subsequent
-Accounts-related API calls.
+`https://accounts.ente.io/passkeys/handoff?token=<accountsToken>`. This page
+will parse the token for usage in subsequent Accounts-related API calls.
 
 If the token is valid, the user will be automatically redirected to the passkeys
 management page. Otherwise, they will be required to login with their Ente
@@ -71,10 +70,7 @@ The registration ceremony starts in the browser. When the user clicks the "Add
 new passkey" button, a request is sent to the server for "public key" creation
 options. Although named "public key" options, they actually define customizable
 parameters for the entire credential creation process. They're like an
-instructional sheet that defines exactly what we want. As of the creation of
-this document, the plan is to restrict user authenticators to cross-platform
-ones, like hardware keys. Platform authenticators, such as TPM, are not portable
-and are prone to loss.
+instructional sheet that defines exactly what we want.
 
 On the server side, the WebAuthn library generates this information based on
 data provided from a `webauthn.User` interface. As a result, we satisfy this
@@ -111,7 +107,7 @@ func (u *PasskeyUser) WebAuthnCredentials() []webauthn.Credential {
 }
 ```
 
-#### GET /passkeys/registration/begin
+#### POST /passkeys/registration/begin
 
 ##### Headers
 
@@ -345,14 +341,14 @@ is needed anyways to service credential authentication from mobile clients, so
 we use the same flow for other (web, desktop) clients too.
 
 ```tsx
-window.location.href = `${accountsAppURL()}/passkeys/verify?passkeySessionID=${passkeySessionID}&redirect=${
+window.location.href = `${accountsAppURL()}/passkeys/verify?passkeySessionID=${passkeySessionID}&clientPackage=io.ente.photos.web&redirect=${
     window.location.origin
 }/passkeys/finish`;
 ```
 
 ### Requesting publicKey options (begin)
 
-#### GET /users/two-factor/passkeys/begin
+#### POST /users/two-factor/passkeys/begin
 
 ##### Query parameters
 
