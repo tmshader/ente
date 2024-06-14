@@ -1,7 +1,7 @@
 import { setClientPackageForAuthenticatedRequests } from "@/next/http";
 import log from "@/next/log";
-import { clientPackageName } from "@/next/types/app";
 import type { TwoFactorAuthorizationResponse } from "@/next/types/credentials";
+import { ensure } from "@/utils/ensure";
 import { nullToUndefined } from "@/utils/transform";
 import { VerticallyCentered } from "@ente/shared/components/Container";
 import EnteButton from "@ente/shared/components/EnteButton";
@@ -17,6 +17,7 @@ import {
     isWebAuthnSupported,
     isWhitelistedRedirect,
     redirectAfterPasskeyAuthentication,
+    redirectToPasskeyRecoverPage,
     signChallenge,
 } from "services/passkey";
 
@@ -59,15 +60,12 @@ const Page = () => {
 
         // The server needs to know the app on whose behalf we're trying to
         // authenticate.
-        let clientPackage = nullToUndefined(searchParams.get("client"));
-        // Mobile apps don't pass the client header, deduce their client package
-        // name from the redirect URL that they provide.
+        const clientPackage = nullToUndefined(
+            searchParams.get("clientPackage"),
+        );
         if (!clientPackage) {
-            // TODO-PK: Pass from mobile app too?
-            clientPackage =
-                clientPackageName[
-                    redirectURL.protocol == "enteauth:" ? "auth" : "photos"
-                ];
+            setStatus("unrecoverableFailure");
+            return;
         }
 
         localStorage.setItem("clientPackage", clientPackage);
@@ -102,11 +100,12 @@ const Page = () => {
 
             setStatus("loading");
 
-            authorizationResponse = await finishPasskeyAuthentication(
+            authorizationResponse = await finishPasskeyAuthentication({
                 passkeySessionID,
                 ceremonySessionID,
+                clientPackage,
                 credential,
-            );
+            });
         } catch (e) {
             log.error("Passkey authentication failed", e);
             setStatus("failed");
@@ -116,7 +115,10 @@ const Page = () => {
         // Conceptually we can `setStatus("done")` at this point, but we'll
         // leave this page anyway, so no need to tickle React.
 
-        redirectAfterPasskeyAuthentication(redirectURL, authorizationResponse);
+        await redirectAfterPasskeyAuthentication(
+            redirectURL,
+            authorizationResponse,
+        );
     };
 
     useEffect(() => {
@@ -125,12 +127,22 @@ const Page = () => {
 
     const handleRetry = () => void authenticate();
 
+    const handleRecover = () => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirect = nullToUndefined(searchParams.get("redirect"));
+        const redirectURL = new URL(ensure(redirect));
+
+        redirectToPasskeyRecoverPage(redirectURL);
+    };
+
     const components: Record<Status, React.ReactNode> = {
         loading: <Loading />,
         unknownRedirect: <UnknownRedirect />,
         webAuthnNotSupported: <WebAuthnNotSupported />,
         unrecoverableFailure: <UnrecoverableFailure />,
-        failed: <RetriableFailed onRetry={handleRetry} />,
+        failed: (
+            <RetriableFailed onRetry={handleRetry} onRecover={handleRecover} />
+        ),
         waitingForUser: <WaitingForUser />,
     };
 
@@ -148,16 +160,15 @@ const Loading: React.FC = () => {
 };
 
 const UnknownRedirect: React.FC = () => {
-    return <Failed message={t("PASSKEY_LOGIN_URL_INVALID")} />;
+    return <Failed message={t("passkey_login_invalid_url")} />;
 };
 
 const WebAuthnNotSupported: React.FC = () => {
-    // TODO-PK(MR): Translate
-    return <Failed message={"Passkeys are not supported in this browser"} />;
+    return <Failed message={t("passkeys_not_supported")} />;
 };
 
 const UnrecoverableFailure: React.FC = () => {
-    return <Failed message={t("PASSKEY_LOGIN_ERRORED")} />;
+    return <Failed message={t("passkey_login_generic_error")} />;
 };
 
 interface FailedProps {
@@ -168,7 +179,7 @@ const Failed: React.FC<FailedProps> = ({ message }) => {
     return (
         <Content>
             <InfoIcon color="secondary" />
-            <Typography variant="h3">{t("PASSKEY_LOGIN_FAILED")}</Typography>
+            <Typography variant="h3">{t("passkey_login_failed")}</Typography>
             <Typography color="text.muted">{message}</Typography>
         </Content>
     );
@@ -202,15 +213,23 @@ const ContentPaper = styled(Paper)`
 interface RetriableFailedProps {
     /** Callback invoked when the user presses the try again button. */
     onRetry: () => void;
+    /**
+     * Callback invoked when the user presses the button to recover their
+     * second factor, e.g. if they cannot login using it.
+     */
+    onRecover: () => void;
 }
 
-const RetriableFailed: React.FC<RetriableFailedProps> = ({ onRetry }) => {
+const RetriableFailed: React.FC<RetriableFailedProps> = ({
+    onRetry,
+    onRecover,
+}) => {
     return (
         <Content>
             <InfoIcon color="secondary" fontSize="large" />
-            <Typography variant="h3">{t("PASSKEY_LOGIN_FAILED")}</Typography>
+            <Typography variant="h3">{t("passkey_login_failed")}</Typography>
             <Typography color="text.muted">
-                {t("PASSKEY_LOGIN_ERRORED")}
+                {t("passkey_login_generic_error")}
             </Typography>
             <ButtonStack>
                 <EnteButton
@@ -223,7 +242,7 @@ const RetriableFailed: React.FC<RetriableFailedProps> = ({ onRetry }) => {
                     {t("TRY_AGAIN")}
                 </EnteButton>
                 <EnteButton
-                    href="/passkeys/recover"
+                    onClick={onRecover}
                     fullWidth
                     color="primary"
                     type="button"
@@ -247,10 +266,10 @@ const WaitingForUser: React.FC = () => {
     return (
         <Content>
             <Typography fontWeight="bold" variant="h2">
-                {t("LOGIN_WITH_PASSKEY")}
+                {t("passkey_login")}
             </Typography>
             <Typography color="text.muted">
-                {t("PASSKEY_FOLLOW_THE_STEPS_FROM_YOUR_BROWSER")}
+                {t("passkey_login_instructions")}
             </Typography>
             <WaitingImgContainer>
                 <img

@@ -6,10 +6,10 @@ import { nullToUndefined } from "@/utils/transform";
 import {
     fromB64URLSafeNoPadding,
     toB64URLSafeNoPadding,
+    toB64URLSafeNoPaddingString,
 } from "@ente/shared/crypto/internal/libsodium";
 import { apiOrigin } from "@ente/shared/network/api";
 import { getToken } from "@ente/shared/storage/localStorage/helpers";
-import _sodium from "libsodium-wrappers";
 import { z } from "zod";
 
 /** Return true if the user's browser supports WebAuthn (Passkeys). */
@@ -51,7 +51,7 @@ const Passkey = z.object({
 export type Passkey = z.infer<typeof Passkey>;
 
 const GetPasskeysResponse = z.object({
-    passkeys: z.array(Passkey),
+    passkeys: z.array(Passkey).nullish().transform(nullToUndefined),
 });
 
 /**
@@ -67,7 +67,7 @@ export const getPasskeys = async () => {
     });
     if (!res.ok) throw new Error(`Failed to fetch ${url}: HTTP ${res.status}`);
     const { passkeys } = GetPasskeysResponse.parse(await res.json());
-    return passkeys;
+    return passkeys ?? [];
 };
 
 /**
@@ -116,7 +116,11 @@ export const registerPasskey = async (name: string) => {
 
     // Finish by letting the backend know about these credentials so that it can
     // save the public key for future authentication.
-    await finishPasskeyRegistration(name, sessionID, credential);
+    await finishPasskeyRegistration({
+        friendlyName: name,
+        sessionID,
+        credential,
+    });
 };
 
 interface BeginPasskeyRegistrationResponse {
@@ -139,6 +143,7 @@ interface BeginPasskeyRegistrationResponse {
 const beginPasskeyRegistration = async () => {
     const url = `${apiOrigin()}/passkeys/registration/begin`;
     const res = await fetch(url, {
+        method: "POST",
         headers: accountsAuthenticatedRequestHeaders(),
     });
     if (!res.ok) throw new Error(`Failed to fetch ${url}: HTTP ${res.status}`);
@@ -256,11 +261,17 @@ const binaryToServerB64 = async (b: ArrayBuffer) => {
     return b64String as unknown as BufferSource;
 };
 
-const finishPasskeyRegistration = async (
-    sessionID: string,
-    friendlyName: string,
-    credential: Credential,
-) => {
+interface FinishPasskeyRegistrationOptions {
+    sessionID: string;
+    friendlyName: string;
+    credential: Credential;
+}
+
+const finishPasskeyRegistration = async ({
+    sessionID,
+    friendlyName,
+    credential,
+}: FinishPasskeyRegistrationOptions) => {
     const attestationResponse = authenticatorAttestationResponse(credential);
 
     const attestationObject = await binaryToServerB64(
@@ -269,6 +280,7 @@ const finishPasskeyRegistration = async (
     const clientDataJSON = await binaryToServerB64(
         attestationResponse.clientDataJSON,
     );
+    const transports = attestationResponse.getTransports();
 
     const params = new URLSearchParams({ friendlyName, sessionID });
     const url = `${apiOrigin()}/passkeys/registration/finish`;
@@ -285,6 +297,7 @@ const finishPasskeyRegistration = async (
             response: {
                 attestationObject,
                 clientDataJSON,
+                transports,
             },
         }),
     });
@@ -400,28 +413,21 @@ export const beginPasskeyAuthentication = async (
  */
 export const signChallenge = async (
     publicKey: PublicKeyCredentialRequestOptions,
-) => {
-    for (const listItem of publicKey.allowCredentials ?? []) {
-        // From MDN:
-        //
-        // > The `transports` property is hint of the methods that the client
-        // > could use to communicate with the relevant authenticator of the
-        // > public key credential to retrieve. Possible values are ["ble",
-        // > "hybrid", "internal", "nfc", "usb"].
-        //
-        // TODO-PK: Better document why + why not "hybrid"
-        //
-        // note: we are orverwriting the transports array with all possible values.
-        // This is because the browser will only prompt the user for the transport that is available.
-        // Warning: In case of invalid transport value, the webauthn will fail on Safari & iOS browsers
-        listItem.transports = ["usb", "nfc", "ble", "internal"];
-    }
+) => navigator.credentials.get({ publicKey });
 
-    // Allow up to 60 seconds to wait for the retrieval
-    publicKey.timeout = 60 * 1000;
-
-    return await navigator.credentials.get({ publicKey });
-};
+interface FinishPasskeyAuthenticationOptions {
+    passkeySessionID: string;
+    ceremonySessionID: string;
+    /**
+     * The package name of the client on whose behalf we're authenticating with
+     * the user's passkey.
+     *
+     * This is used by the backend to generate an appropriately scoped auth
+     * token for used by (and only by) the authenticating app.
+     */
+    clientPackage: string;
+    credential: Credential;
+}
 
 /**
  * Finish the authentication by providing the signed assertion to the backend.
@@ -432,11 +438,12 @@ export const signChallenge = async (
  * @returns The result of successful authentication, a
  * {@link TwoFactorAuthorizationResponse}.
  */
-export const finishPasskeyAuthentication = async (
-    passkeySessionID: string,
-    ceremonySessionID: string,
-    credential: Credential,
-) => {
+export const finishPasskeyAuthentication = async ({
+    passkeySessionID,
+    ceremonySessionID,
+    clientPackage,
+    credential,
+}: FinishPasskeyAuthenticationOptions) => {
     const response = authenticatorAssertionResponse(credential);
 
     const authenticatorData = await binaryToServerB64(
@@ -451,11 +458,14 @@ export const finishPasskeyAuthentication = async (
     const params = new URLSearchParams({
         sessionID: passkeySessionID,
         ceremonySessionID,
+        clientPackage,
     });
     const url = `${apiOrigin()}/users/two-factor/passkeys/finish`;
     const res = await fetch(`${url}?${params.toString()}`, {
         method: "POST",
-        headers: clientPackageHeaderIfPresent(),
+        headers: {
+            "X-Client-Package": clientPackage,
+        },
         body: JSON.stringify({
             id: credential.id,
             // This is meant to be the ArrayBuffer version of the (base64
@@ -511,14 +521,33 @@ const authenticatorAssertionResponse = (credential: Credential) => {
  * @param twoFactorAuthorizationResponse The result of
  * {@link finishPasskeyAuthentication} returned by the backend.
  */
-export const redirectAfterPasskeyAuthentication = (
+export const redirectAfterPasskeyAuthentication = async (
     redirectURL: URL,
     twoFactorAuthorizationResponse: TwoFactorAuthorizationResponse,
 ) => {
-    const encodedResponse = _sodium.to_base64(
+    const encodedResponse = await toB64URLSafeNoPaddingString(
         JSON.stringify(twoFactorAuthorizationResponse),
     );
 
-    // TODO-PK: Shouldn't this be URL encoded?
-    window.location.href = `${redirectURL}?response=${encodedResponse}`;
+    redirectURL.searchParams.set("response", encodedResponse);
+    window.location.href = redirectURL.href;
+};
+
+/**
+ * Redirect back to the calling app that initiated the passkey authentication,
+ * navigating the user to a page where they can reset their second factor using
+ * their recovery key (e.g. if they have lost access to their passkey).
+ *
+ * The same considerations mentioned in [Note: Finish passkey flow in the
+ * requesting app] apply to recovery too, which is why we need to redirect back
+ * to the app on whose behalf we're authenticating.
+ *
+ * @param redirectURL The URL we were meant to redirect to after successful
+ * passkey authentication. Provided as a calling app as a query parameter.
+ */
+export const redirectToPasskeyRecoverPage = (redirectURL: URL) => {
+    // Extract the origin from the given `redirectURL`, and redirect to the
+    // `/passkeys/recover` page on that origin.
+
+    window.location.href = `${redirectURL.origin}/passkeys/recover`;
 };
