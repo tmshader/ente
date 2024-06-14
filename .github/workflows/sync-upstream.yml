@@ -30,6 +30,8 @@ jobs:
           submodules: recursive
           token: ${{ secrets.SYNC_PAT }}
       - name: Sync upstream repo
-        run: gh repo sync shoetten/ente
+        run: |
+          gh auth refresh -s workflow
+          gh repo sync shoetten/ente
         env:
           GH_TOKEN: ${{ secrets.SYNC_PAT }}
