@@ -24,14 +24,8 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          token: ${{ secrets.SYNC_PAT }}
       - name: Sync upstream repo
         run: |
-          gh auth refresh -s workflow
           gh repo sync shoetten/ente
         env:
           GH_TOKEN: ${{ secrets.SYNC_PAT }}
