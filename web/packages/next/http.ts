@@ -16,7 +16,7 @@ let _clientPackage: string | undefined;
  * @param appName The {@link AppName} of the current app.
  */
 export const setAppNameForAuthenticatedRequests = (appName: AppName) => {
-    _clientPackage = clientPackageName[appName];
+    _clientPackage = clientPackageName(appName);
 };
 
 /**
@@ -50,8 +50,8 @@ export const authenticatedRequestHeaders = (): Record<string, string> => {
 };
 
 /**
- * Return a headers object with client package header if we have that value
- * present in local storage.
+ * Return a headers object with "X-Client-Package" header if we have the client
+ * package value available to us from local storage.
  */
 export const clientPackageHeaderIfPresent = (): Record<string, string> => {
     const headers: Record<string, string> = {};
