@@ -1,23 +1,26 @@
 # Cloudflare Workers
 
-Source code for our [Cloudflare
-Workers](https://developers.cloudflare.com/workers/).
+Source code for our
+[Cloudflare Workers](https://developers.cloudflare.com/workers/).
 
 Each worker is a self contained directory with its each `package.json`.
 
 ## Deploying
 
-* Switch to a worker directory, e.g. `cd github-discord-notifier`.
+-   Switch to a worker directory, e.g. `cd github-discord-notifier`.
 
-* Install dependencies (if needed) with `yarn`
+-   Install dependencies (if needed) with `yarn`
 
-* Login into wrangler (if needed) using `yarn wrangler login`
+    > If you have previously deployed, then you will have an old `yarn.lock`. In
+    > this case it is safe to delete and recreate using `rm yarn.lock && yarn`.
 
-* Deploy! `yarn wrangler deploy`
+-   Login into wrangler (if needed) using `yarn wrangler login`
+
+-   Deploy! `yarn wrangler deploy`
 
 Wrangler is the CLI provided by Cloudflare to manage workers. Apart from
-deploying, it also allows us to stream logs from running workers by using `yarn
-wrangler tail`.
+deploying, it also allows us to stream logs from running workers by using
+`yarn wrangler tail`.
 
 ## Creating a new worker
 
@@ -30,3 +33,12 @@ To import an existing worker from the Cloudflare dashboard, use
 ```sh
 npm create cloudflare@2 existing-worker-name -- --type pre-existing --existing-script existing-worker-name
 ```
+
+## Logging
+
+Attach the tail worker to your worker by adding
+
+    tail_consumers = [{ service = "tail" }]
+
+in its `wrangler.toml`. Then any `console.(log|warn|error)` statements and
+uncaught exceptions in your worker will be logged to Grafana.
