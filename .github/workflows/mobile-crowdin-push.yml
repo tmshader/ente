@@ -1,13 +1,14 @@
 name: "Push sources to Crowdin (mobile)"
 
 on:
-    push:
-        branches: [main]
-        paths:
-            # Run workflow when mobiles's intl_en.arb is changed
-            - "mobile/lib/l10n/intl_en.arb"
-            # Or the workflow itself is changed
-            - ".github/workflows/mobile-crowdin.yml"
+    # push:
+    #     branches: [main]
+    #     paths:
+    #         # Run workflow when mobiles's intl_en.arb is changed
+    #         - "mobile/lib/l10n/intl_en.arb"
+    #         # Or the workflow itself is changed
+    #         - ".github/workflows/mobile-crowdin.yml"
+    workflow_dispatch:
 
 jobs:
     push-sources-to-crowdin:

@@ -1,13 +1,14 @@
 name: "Push sources to Crowdin (auth)"
 
 on:
-    push:
-        branches: [main]
-        paths:
-            # Run workflow when auth's intl_en.arb is changed
-            - "auth/lib/l10n/arb/app_en.arb"
-            # Or the workflow itself is changed
-            - ".github/workflows/auth-crowdin.yml"
+    # push:
+    #     branches: [main]
+    #     paths:
+    #         # Run workflow when auth's intl_en.arb is changed
+    #         - "auth/lib/l10n/arb/app_en.arb"
+    #         # Or the workflow itself is changed
+    #         - ".github/workflows/auth-crowdin.yml"
+    workflow_dispatch:
 
 jobs:
     push-sources-to-crowdin:
