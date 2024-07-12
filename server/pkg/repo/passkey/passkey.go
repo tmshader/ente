@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -46,7 +47,9 @@ func (u *PasskeyUser) WebAuthnName() string {
 }
 
 func (u *PasskeyUser) WebAuthnDisplayName() string {
-	return u.Name
+	// Safari requires a display name to be set, otherwise it does not recognize
+	// security keys.
+	return u.Email
 }
 
 func (u *PasskeyUser) WebAuthnCredentials() []webauthn.Credential {
@@ -263,6 +266,16 @@ func (r *Repository) CreateBeginAuthenticationData(user *ente.User) (options *pr
 
 	options, session, err = r.webAuthnInstance.BeginLogin(passkeyUser)
 	if err != nil {
+		if _, ok := err.(*protocol.Error); ok {
+			protocolErr := err.(*protocol.Error)
+			if protocolErr.Type == "invalid_request" && protocolErr.Details == "Found no credentials for user" {
+				err = stacktrace.Propagate(ente.NewBadRequestWithMessage("No passkey found for user"), "")
+				return
+			} else {
+				err = stacktrace.Propagate(err, fmt.Sprintf("error while beginning login: type %s, msg %s", protocolErr.Type, protocolErr.Details))
+				return
+			}
+		}
 		err = stacktrace.Propagate(err, "")
 		return
 	}

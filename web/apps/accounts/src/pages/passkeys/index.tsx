@@ -1,24 +1,29 @@
+import { EnteDrawer } from "@/new/shared/components/EnteDrawer";
+import { MenuItemDivider, MenuItemGroup } from "@/new/shared/components/Menu";
+import { Titlebar } from "@/new/shared/components/Titlebar";
 import log from "@/next/log";
 import { ensure } from "@/utils/ensure";
 import { CenteredFlex } from "@ente/shared/components/Container";
 import DialogBoxV2 from "@ente/shared/components/DialogBoxV2";
 import EnteButton from "@ente/shared/components/EnteButton";
-import { EnteDrawer } from "@ente/shared/components/EnteDrawer";
 import FormPaper from "@ente/shared/components/Form/FormPaper";
 import InfoItem from "@ente/shared/components/Info/InfoItem";
 import { EnteMenuItem } from "@ente/shared/components/Menu/EnteMenuItem";
-import MenuItemDivider from "@ente/shared/components/Menu/MenuItemDivider";
-import { MenuItemGroup } from "@ente/shared/components/Menu/MenuItemGroup";
 import SingleInputForm from "@ente/shared/components/SingleInputForm";
-import Titlebar from "@ente/shared/components/Titlebar";
 import { formatDateTimeFull } from "@ente/shared/time/format";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import KeyIcon from "@mui/icons-material/Key";
-import { Box, Button, Stack, Typography, useMediaQuery } from "@mui/material";
-import { useAppContext } from "components/context";
+import {
+    Box,
+    Button,
+    Stack,
+    Typography,
+    styled,
+    useMediaQuery,
+} from "@mui/material";
 import { t } from "i18next";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -28,6 +33,7 @@ import {
     renamePasskey,
     type Passkey,
 } from "services/passkey";
+import { useAppContext } from "../../types/context";
 
 const Page: React.FC = () => {
     const { showNavBar, setDialogBoxAttributesV2 } = useAppContext();
@@ -204,15 +210,26 @@ const PasskeyListItem: React.FC<PasskeyListItemProps> = ({
     passkey,
     onClick,
 }) => {
+    const labelComponent = (
+        <PasskeyLabel>
+            <Typography fontWeight="bold">{passkey.friendlyName}</Typography>
+        </PasskeyLabel>
+    );
     return (
         <EnteMenuItem
             onClick={() => onClick(passkey)}
             startIcon={<KeyIcon />}
             endIcon={<ChevronRightIcon />}
-            label={passkey.friendlyName}
+            labelComponent={labelComponent}
         />
     );
 };
+
+const PasskeyLabel = styled("div")`
+    /* If the name of the passkey does not fit in one line, break the text into
+       multiple lines as necessary */
+    white-space: normal;
+`;
 
 interface ManagePasskeyDrawerProps {
     /** If `true`, then the drawer is shown. */
