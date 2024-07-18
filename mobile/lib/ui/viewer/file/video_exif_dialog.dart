@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import "package:photos/l10n/l10n.dart";
 import "package:photos/models/ffmpeg/ffprobe_keys.dart";
 import "package:photos/theme/ente_theme.dart";
 
@@ -25,12 +26,17 @@ class VideoExifDialog extends StatelessWidget {
   }
 
   Widget _buildSection(BuildContext context, String title, Widget content) {
-    return ExpansionTile(
-      initiallyExpanded: true,
-      title: Text(title, style: getEnteTextTheme(context).largeFaint),
-      childrenPadding: const EdgeInsets.symmetric(vertical: 2),
-      tilePadding: const EdgeInsets.symmetric(vertical: 4),
-      children: [content],
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        title: Text(title, style: getEnteTextTheme(context).body),
+        childrenPadding: EdgeInsets.zero, // Remove padding around children
+        tilePadding: EdgeInsets.zero,
+        collapsedShape: const Border(), // Remove border when collapsed
+        shape: const Border(),
+        children: [content],
+      ),
     );
   }
 
@@ -38,9 +44,13 @@ class VideoExifDialog extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          context.l10n.videoInfo,
+          style: getEnteTextTheme(context).large,
+        ),
         _buildInfoRow(context, 'Creation Time', probeData, 'creation_time'),
         _buildInfoRow(context, 'Duration', probeData, 'duration'),
-        _buildInfoRow(context, 'Location', probeData, 'location'),
+        _buildInfoRow(context, context.l10n.location, probeData, 'location'),
         _buildInfoRow(context, 'Bitrate', probeData, 'bitrate'),
         _buildInfoRow(context, 'Frame Rate', probeData, FFProbeKeys.rFrameRate),
         _buildInfoRow(context, 'Width', probeData, FFProbeKeys.codedWidth),
@@ -61,6 +71,9 @@ class VideoExifDialog extends StatelessWidget {
 
       for (final key in stream.keys) {
         final dynamic value = stream[key];
+        if (value is List) {
+          continue;
+        }
         // print type of value
         if (value is int ||
             value is double ||
@@ -89,10 +102,12 @@ class VideoExifDialog extends StatelessWidget {
     return ExpansionTile(
       title: Text(
         titleString,
-        style: getEnteTextTheme(context).smallBold,
+        style: getEnteTextTheme(context).small,
       ),
       childrenPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
-      tilePadding: const EdgeInsets.symmetric(vertical: 4),
+      tilePadding: EdgeInsets.zero,
+      collapsedShape: const Border(), // Remove border when collapsed
+      shape: const Border(),
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
