@@ -5,7 +5,7 @@ import {
     MenuItemDivider,
     MenuItemGroup,
     MenuSectionTitle,
-} from "@/new/shared/components/Menu";
+} from "@/base/components/Menu";
 import { EnteMenuItem } from "@ente/shared/components/Menu/EnteMenuItem";
 import AddIcon from "@mui/icons-material/Add";
 import ChevronRight from "@mui/icons-material/ChevronRight";
@@ -50,7 +50,7 @@ export default function EmailShare({
         <>
             <Stack>
                 <MenuSectionTitle
-                    title={t("shared_with_people", {
+                    title={t("shared_with_people_count", {
                         count: collection.sharees?.length ?? 0,
                     })}
                     icon={<Workspaces />}

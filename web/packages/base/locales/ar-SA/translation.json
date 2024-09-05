@@ -1,0 +1,659 @@
+{
+    "HERO_SLIDE_1_TITLE": "<div>نسخ احتياطية خاصة</div><div>لذكرياتك</div>",
+    "HERO_SLIDE_1": "تشفير من طرف إلى طرف بشكل افتراضي",
+    "HERO_SLIDE_2_TITLE": "<div>يتم تخزينها بأمان</div><div>في ملجأ للطوارئ</div>",
+    "HERO_SLIDE_2": "مصممة لتدوم",
+    "HERO_SLIDE_3_TITLE": "<div>متاح</div><div> في كل مكان</div>",
+    "HERO_SLIDE_3": "أندرويد، آي أو إس، ويب، سطح المكتب",
+    "LOGIN": "تسجيل الدخول",
+    "SIGN_UP": "تسجيل",
+    "NEW_USER": "جديد في Ente",
+    "EXISTING_USER": "مستخدم موجود",
+    "ENTER_NAME": "أدخل الاسم",
+    "PUBLIC_UPLOADER_NAME_MESSAGE": "أضف اسما حتى يتمكن أصدقاؤك من معرفة من يشكرون على هذه الصور الرائعة!",
+    "ENTER_EMAIL": "أدخل عنوان البريد الإلكتروني",
+    "EMAIL_ERROR": "أدخل بريد إلكتروني صالح",
+    "REQUIRED": "مطلوب",
+    "EMAIL_SENT": "تم إرسال رمز التحقق إلى <a>{{email}}</a>",
+    "CHECK_INBOX": "الرجاء التحقق من صندوق الوارد (والرسائل غير المرغوب فيها) لإكمال التحقق",
+    "ENTER_OTT": "رمز التحقق",
+    "RESEND_MAIL": "إعادة إرسال الرمز",
+    "VERIFY": "تحقق",
+    "UNKNOWN_ERROR": "حدث خطأ ما، يرجى المحاولة مرة أخرى",
+    "INVALID_CODE": "رمز التحقق غير صالح",
+    "EXPIRED_CODE": "انتهت صلاحية رمز التحقق الخاص بك",
+    "SENDING": "إرسال...",
+    "SENT": "تم الإرسال!",
+    "password": "كلمة المرور",
+    "link_password_description": "أدخل كلمة المرور لفتح الألبوم",
+    "unlock": "فتح",
+    "SET_PASSPHRASE": "تعيين كلمة المرور",
+    "VERIFY_PASSPHRASE": "تسجل الدخول",
+    "INCORRECT_PASSPHRASE": "كلمة المرور غير صحيحة",
+    "ENTER_ENC_PASSPHRASE": "الرجاء إدخال كلمة المرور التي يمكننا استخدامها لتشفير بياناتك",
+    "PASSPHRASE_DISCLAIMER": "نحن لا نخزن كلمة مرورك، لذا إذا نسيتها، <strong>لن نتمكن من مساعدتك </strong>في استرداد بياناتك دون مفتاح الاسترداد.",
+    "WELCOME_TO_ENTE_HEADING": "مرحبا بك في <a/>",
+    "WELCOME_TO_ENTE_SUBHEADING": "تخزين الصور ومشاركتها بشكل مشفر من طرف إلى طرف",
+    "WHERE_YOUR_BEST_PHOTOS_LIVE": "أين تعيش أفضل صورك",
+    "KEY_GENERATION_IN_PROGRESS_MESSAGE": "جار توليد مفاتيح التشفير...",
+    "PASSPHRASE_HINT": "كلمة المرور",
+    "CONFIRM_PASSPHRASE": "تأكيد كلمة المرور",
+    "REFERRAL_CODE_HINT": "كيف سمعت عن Ente؟ (اختياري)",
+    "REFERRAL_INFO": "نحن لا نتتبع عمليات تثبيت التطبيق، سيكون من المفيد لنا أن تخبرنا أين وجدتنا!",
+    "PASSPHRASE_MATCH_ERROR": "كلمات المرور غير متطابقة",
+    "create_albums": "",
+    "CREATE_COLLECTION": "ألبوم جديد",
+    "ENTER_ALBUM_NAME": "اسم الألبوم",
+    "CLOSE_OPTION": "إغلاق (Esc)",
+    "ENTER_FILE_NAME": "إسم الملف",
+    "CLOSE": "إغلاق",
+    "NO": "لا",
+    "NOTHING_HERE": "لا شيء يمكن رؤيته هنا بعد 👀",
+    "upload": "تحميل",
+    "import": "استيراد",
+    "ADD_PHOTOS": "إضافة صور",
+    "ADD_MORE_PHOTOS": "إضافة المزيد من الصور",
+    "add_photos_count_one": "إضافة 1 عنصر",
+    "add_photos_count": "إضافة {{count, number}} عناصر",
+    "select_photos": "تحديد الصور",
+    "FILE_UPLOAD": "تحميل الملف",
+    "UPLOAD_STAGE_MESSAGE": {
+        "0": "الإعداد للتحميل",
+        "1": "قراءة ملفات بيانات تعريف جوجل",
+        "2": "{{uploadCounter.finished, number}} / {{uploadCounter.total, number}} البيانات الملفات الوصفية المستخرجة",
+        "3": "{{uploadCounter.finished, number}} / {{uploadCounter.total, number}} ملفات معالجة",
+        "4": "إلغاء التحميلات المتبقية",
+        "5": "اكتمل النسخ الاحتياطي"
+    },
+    "FILE_NOT_UPLOADED_LIST": "لم يتم تحميل الملفات التالية",
+    "INITIAL_LOAD_DELAY_WARNING": "التحميل الأول قد يستغرق بعض الوقت",
+    "USER_DOES_NOT_EXIST": "عذرا، لم يتم العثور على مستخدم بهذا البريد الإلكتروني",
+    "NO_ACCOUNT": "ليس لديك حساب",
+    "ACCOUNT_EXISTS": "لديك حساب بالفعل",
+    "CREATE": "إنشاء",
+    "DOWNLOAD": "تنزيل",
+    "DOWNLOAD_OPTION": "تنزيل (D)",
+    "DOWNLOAD_FAVORITES": "تنزيل المفضلات",
+    "DOWNLOAD_UNCATEGORIZED": "التنزيل غير المصنف",
+    "DOWNLOAD_HIDDEN_ITEMS": "تنزيل العناصر المخفية",
+    "COPY_OPTION": "نسخ كـ PNG (Ctrl/Cmd - C)",
+    "TOGGLE_FULLSCREEN": "تبديل ملء الشاشة (F)",
+    "ZOOM_IN_OUT": "تكبير/تصغير",
+    "PREVIOUS": "السابق (←)",
+    "NEXT": "التالي (→)",
+    "title_photos": "صور Ente",
+    "title_auth": "مصادقة Ente",
+    "title_accounts": "حسابات Ente",
+    "UPLOAD_FIRST_PHOTO": "تحميل صورتك الأولى",
+    "IMPORT_YOUR_FOLDERS": "استيراد مجلداتك",
+    "UPLOAD_DROPZONE_MESSAGE": "إسقاط للنسخ الاحتياطي للملفاتك",
+    "WATCH_FOLDER_DROPZONE_MESSAGE": "",
+    "TRASH_FILES_TITLE": "حذف الملفات؟",
+    "TRASH_FILE_TITLE": "حذف الملف؟",
+    "DELETE_FILES_TITLE": "حذف فورا؟",
+    "DELETE_FILES_MESSAGE": "سيتم حذف الملفات المحددة نهائيا من حساب Ente الخاص بك.",
+    "DELETE": "حذف",
+    "DELETE_OPTION": "حذف (DEL)",
+    "FAVORITE_OPTION": "مفضلة (L)",
+    "UNFAVORITE_OPTION": "غير مفضلة (L)",
+    "MULTI_FOLDER_UPLOAD": "تم اكتشاف مجلدات متعددة",
+    "UPLOAD_STRATEGY_CHOICE": "هل ترغب في تحميلهم إلى",
+    "UPLOAD_STRATEGY_SINGLE_COLLECTION": "ألبوم واحد",
+    "OR": "أو",
+    "UPLOAD_STRATEGY_COLLECTION_PER_FOLDER": "ألبومات منفصلة",
+    "SESSION_EXPIRED_MESSAGE": "لقد انتهت صلاحية جلستك، يرجى تسجيل الدخول مرة أخرى للمتابعة",
+    "SESSION_EXPIRED": "انتهت صلاحية الجلسة",
+    "PASSWORD_GENERATION_FAILED": "لم يتمكن متصفحك من إنشاء مفتاح قوي يفي بمعايير تشفير Ente، يرجى المحاولة باستخدام تطبيق الهاتف المحمول أو متصفح آخر",
+    "CHANGE_PASSWORD": "تغيير كلمة المرور",
+    "password_changed_elsewhere": "تم تغيير كلمة المرور في مكان آخر",
+    "password_changed_elsewhere_message": "يرجى تسجيل الدخول مرة أخرى على هذا الجهاز لاستخدام كلمة المرور الجديدة للمصادقة.",
+    "GO_BACK": "رجوع",
+    "RECOVERY_KEY": "مفتاح الاستعادة",
+    "SAVE_LATER": "قم بهذا لاحقا",
+    "SAVE": "حفظ المفتاح",
+    "RECOVERY_KEY_DESCRIPTION": "",
+    "RECOVER_KEY_GENERATION_FAILED": "",
+    "KEY_NOT_STORED_DISCLAIMER": "",
+    "FORGOT_PASSWORD": "نسيت كلمة المرور",
+    "RECOVER_ACCOUNT": "إستعادة الحساب",
+    "RECOVERY_KEY_HINT": "مفتاح الاستعادة",
+    "RECOVER": "استعادة",
+    "NO_RECOVERY_KEY": "ما من مفتاح استعادة؟",
+    "INCORRECT_RECOVERY_KEY": "مفتاح استعادة غير صحيح",
+    "SORRY": "عذرا",
+    "NO_RECOVERY_KEY_MESSAGE": "",
+    "NO_TWO_FACTOR_RECOVERY_KEY_MESSAGE": "",
+    "CONTACT_SUPPORT": "الاتصال بالدعم",
+    "REQUEST_FEATURE": "طلب ميزة",
+    "SUPPORT": "الدعم",
+    "CONFIRM": "تأكيد",
+    "cancel": "إلغاء",
+    "LOGOUT": "تسجيل الخروج",
+    "delete_account": "حذف الحساب",
+    "delete_account_manually_message": "",
+    "LOGOUT_MESSAGE": "هل أنت متأكد من أنك تريد تسجيل الخروج؟",
+    "CHANGE_EMAIL": "تغيير البريد الإلكتروني",
+    "OK": "حسنا",
+    "SUCCESS": "تم بنجاح",
+    "ERROR": "خطأ",
+    "MESSAGE": "رسالة",
+    "OFFLINE_MSG": "",
+    "INSTALL_MOBILE_APP": "",
+    "DOWNLOAD_APP_MESSAGE": "",
+    "DOWNLOAD_APP": "تنزيل تطبيق سطح المكتب",
+    "EXPORT": "تصدير البيانات",
+    "SUBSCRIPTION": "اشتراك",
+    "SUBSCRIBE": "اشترك",
+    "MANAGEMENT_PORTAL": "إدارة طريقة الدفع",
+    "MANAGE_FAMILY_PORTAL": "إدارة العائلة",
+    "LEAVE_FAMILY_PLAN": "مغادرة خطة العائلة",
+    "LEAVE": "مغادرة",
+    "LEAVE_FAMILY_CONFIRM": "هل أنت متأكد من أنك تريد مغادرة الخطة العائلية؟",
+    "CHOOSE_PLAN": "اختر خطتك",
+    "MANAGE_PLAN": "إدارة اشتراكك",
+    "CURRENT_USAGE": "الاستخدام الحالي هو <strong>{{usage}}</strong>",
+    "TWO_MONTHS_FREE": "احصل على شهرين مجانا في الخطط السنوية",
+    "POPULAR": "رائج",
+    "free_plan_option": "المتابعة مع الخطة المجانية",
+    "free_plan_description": "{{storage}} مجاني للأبد",
+    "active": "نشط",
+    "subscription_info_free": "أنت في الخطة المجانية",
+    "subscription_info_family": "",
+    "subscription_info_expired": "",
+    "subscription_info_renewal_cancelled": "",
+    "subscription_info_storage_quota_exceeded": "",
+    "subscription_status_renewal_active": "",
+    "subscription_status_renewal_cancelled": "ينتهي في {{date, date}}",
+    "add_on_valid_till": "",
+    "subscription_expired": "إنتهت صلاحية الاشتراك",
+    "storage_quota_exceeded": "تم تجاوز حد التخزين",
+    "SUBSCRIPTION_PURCHASE_SUCCESS": "<p>لقد تلقينا دفعتك</p><p>اشتراكك صالح حتى <strong>{{date, date}}</strong></p>",
+    "SUBSCRIPTION_PURCHASE_CANCELLED": "",
+    "SUBSCRIPTION_PURCHASE_FAILED": "",
+    "SUBSCRIPTION_UPDATE_FAILED": "",
+    "UPDATE_PAYMENT_METHOD_MESSAGE": "",
+    "STRIPE_AUTHENTICATION_FAILED": "",
+    "UPDATE_PAYMENT_METHOD": "",
+    "MONTHLY": "شهريا",
+    "YEARLY": "سنويا",
+    "MONTH_SHORT": "شهر",
+    "YEAR": "سنة",
+    "update_subscription_title": "تأكيد تغيير الخطة",
+    "UPDATE_SUBSCRIPTION_MESSAGE": "هل أنت متأكد من أنك تريد تغيير خطتك؟",
+    "UPDATE_SUBSCRIPTION": "تغيير الخطة",
+    "CANCEL_SUBSCRIPTION": "إلغاء الاشتراك",
+    "CANCEL_SUBSCRIPTION_MESSAGE": "",
+    "CANCEL_SUBSCRIPTION_WITH_ADDON_MESSAGE": "",
+    "SUBSCRIPTION_CANCEL_FAILED": "فشل في إلغاء الاشتراك",
+    "SUBSCRIPTION_CANCEL_SUCCESS": "تم إلغاء الاشتراك بنجاح",
+    "REACTIVATE_SUBSCRIPTION": "إعادة تنشيط الاشتراك",
+    "REACTIVATE_SUBSCRIPTION_MESSAGE": "",
+    "SUBSCRIPTION_ACTIVATE_SUCCESS": "",
+    "SUBSCRIPTION_ACTIVATE_FAILED": "",
+    "SUBSCRIPTION_PURCHASE_SUCCESS_TITLE": "شكرا لك",
+    "CANCEL_SUBSCRIPTION_ON_MOBILE": "",
+    "CANCEL_SUBSCRIPTION_ON_MOBILE_MESSAGE": "",
+    "MAIL_TO_MANAGE_SUBSCRIPTION": "",
+    "RENAME": "اعادة تسمية",
+    "RENAME_FILE": "إعادة تسمية ملف",
+    "RENAME_COLLECTION": "إعادة تسمية ألبوم",
+    "DELETE_COLLECTION_TITLE": "حذف ألبوم؟",
+    "DELETE_COLLECTION": "حذف ألبوم",
+    "DELETE_COLLECTION_MESSAGE": "",
+    "DELETE_PHOTOS": "حذف الصور",
+    "KEEP_PHOTOS": "الاحتفاظ بالصور",
+    "SHARE_COLLECTION": "مشاركة الألبوم",
+    "SHARE_WITH_SELF": "عفوا، لا يمكنك المشاركة مع نفسك",
+    "ALREADY_SHARED": "",
+    "SHARING_BAD_REQUEST_ERROR": "لا يسمح بمشاركة الألبوم",
+    "SHARING_DISABLED_FOR_FREE_ACCOUNTS": "المشاركة معطلة للحسابات المجانية",
+    "DOWNLOAD_COLLECTION": "تنزيل الألبوم",
+    "CREATE_ALBUM_FAILED": "",
+    "SEARCH": "بحث",
+    "SEARCH_RESULTS": "نتائج البحث",
+    "NO_RESULTS": "لا توجد نتائج",
+    "SEARCH_HINT": "البحث عن الألبومات، التواريخ، والأوصاف...",
+    "SEARCH_TYPE": {
+        "COLLECTION": "ألبوم",
+        "LOCATION": "الموقع",
+        "CITY": "الموقع",
+        "DATE": "تاريخ",
+        "FILE_NAME": "إسم الملف",
+        "THING": "المحتوى",
+        "FILE_CAPTION": "وصف",
+        "FILE_TYPE": "نوع الملف",
+        "CLIP": "سحر"
+    },
+    "photos_count_zero": "لا توجد ذكريات",
+    "photos_count_one": "ذكرى واحدة",
+    "photos_count": "{{count, number}} ذكريات",
+    "TERMS_AND_CONDITIONS": "أوافق على <a>شروط الخدمة</a> و<b>سياسة الخصوصية</b>",
+    "ADD_TO_COLLECTION": "إضافة إلى الألبوم",
+    "SELECTED": "محدد",
+    "PEOPLE": "",
+    "indexing_scheduled": "الفهرسة مجدولة...",
+    "indexing_photos": "",
+    "indexing_fetching": "",
+    "indexing_people": "",
+    "indexing_done": "",
+    "UNIDENTIFIED_FACES": "وجوه غير محددة",
+    "OBJECTS": "",
+    "TEXT": "نص",
+    "INFO": "معلومات ",
+    "INFO_OPTION": "معلومات (I)",
+    "FILE_NAME": "إسم الملف",
+    "CAPTION_PLACEHOLDER": "إضافة وصف",
+    "LOCATION": "الموقع",
+    "SHOW_ON_MAP": "عرض على OpenStreetMap",
+    "MAP": "خريطة",
+    "MAP_SETTINGS": "إعدادات الخريطة",
+    "ENABLE_MAPS": "تمكين الخرائط ؟",
+    "ENABLE_MAP": "تمكين الخريطة",
+    "DISABLE_MAPS": "تعطيل الخرائط؟",
+    "ENABLE_MAP_DESCRIPTION": "",
+    "DISABLE_MAP_DESCRIPTION": "",
+    "DISABLE_MAP": "تعطيل الخريطة",
+    "DETAILS": "تفاصيل",
+    "view_exif": "عرض جميع بيانات Exif",
+    "no_exif": "لا توجد بيانات Exif",
+    "exif": "Exif",
+    "ISO": "ISO",
+    "TWO_FACTOR": "",
+    "TWO_FACTOR_AUTHENTICATION": "المصادقة الثنائية",
+    "TWO_FACTOR_QR_INSTRUCTION": "",
+    "ENTER_CODE_MANUALLY": "أدخل الرمز يدويا",
+    "TWO_FACTOR_MANUAL_CODE_INSTRUCTION": "",
+    "SCAN_QR_CODE": "مسح رمز QR بدلاً من ذلك",
+    "ENABLE_TWO_FACTOR": "",
+    "enable": "تفعيل",
+    "enabled": "مفعل",
+    "LOST_DEVICE": "",
+    "INCORRECT_CODE": "رمز غير صحيح",
+    "TWO_FACTOR_INFO": "",
+    "DISABLE_TWO_FACTOR_LABEL": "",
+    "UPDATE_TWO_FACTOR_LABEL": "",
+    "disable": "تعطيل",
+    "reconfigure": "إعادة التهيئة",
+    "UPDATE_TWO_FACTOR": "",
+    "UPDATE_TWO_FACTOR_MESSAGE": "",
+    "UPDATE": "تحديث",
+    "DISABLE_TWO_FACTOR": "",
+    "DISABLE_TWO_FACTOR_MESSAGE": "",
+    "TWO_FACTOR_DISABLE_FAILED": "",
+    "EXPORT_DATA": "تصدير البيانات",
+    "select_folder": "",
+    "select_zips": "",
+    "faq": "الأسئلة الشائعة",
+    "takeout_hint": "",
+    "DESTINATION": "الوجهة",
+    "START": "بدء",
+    "LAST_EXPORT_TIME": "آخر وقت تصدير",
+    "EXPORT_AGAIN": "",
+    "LOCAL_STORAGE_NOT_ACCESSIBLE": "التخزين المحلي غير قابل للوصول",
+    "LOCAL_STORAGE_NOT_ACCESSIBLE_MESSAGE": "",
+    "SEND_OTT": "",
+    "EMAIl_ALREADY_OWNED": "البريد الإلكتروني مأخوذ بالفعل",
+    "ETAGS_BLOCKED": "",
+    "LIVE_PHOTOS_DETECTED": "",
+    "RETRY_FAILED": "",
+    "FAILED_UPLOADS": "",
+    "failed_uploads_hint": "",
+    "SKIPPED_FILES": "",
+    "THUMBNAIL_GENERATION_FAILED_UPLOADS": "",
+    "UNSUPPORTED_FILES": "",
+    "SUCCESSFUL_UPLOADS": "",
+    "SKIPPED_INFO": "",
+    "UNSUPPORTED_INFO": "",
+    "BLOCKED_UPLOADS": "",
+    "INPROGRESS_METADATA_EXTRACTION": "",
+    "INPROGRESS_UPLOADS": "",
+    "TOO_LARGE_UPLOADS": "",
+    "LARGER_THAN_AVAILABLE_STORAGE_UPLOADS": "",
+    "LARGER_THAN_AVAILABLE_STORAGE_INFO": "",
+    "TOO_LARGE_INFO": "",
+    "THUMBNAIL_GENERATION_FAILED_INFO": "",
+    "UPLOAD_TO_COLLECTION": "",
+    "UNCATEGORIZED": "",
+    "ARCHIVE": "",
+    "FAVORITES": "",
+    "ARCHIVE_COLLECTION": "",
+    "ARCHIVE_SECTION_NAME": "",
+    "ALL_SECTION_NAME": "",
+    "MOVE_TO_COLLECTION": "",
+    "UNARCHIVE": "",
+    "UNARCHIVE_COLLECTION": "",
+    "HIDE_COLLECTION": "إخفاء الألبوم",
+    "UNHIDE_COLLECTION": "إلغاء إخفاء الألبوم",
+    "MOVE": "نقل",
+    "ADD": "إضافة",
+    "REMOVE": "ازالة",
+    "YES_REMOVE": "نعم، إزالة",
+    "REMOVE_FROM_COLLECTION": "",
+    "TRASH": "سلة المهملات",
+    "MOVE_TO_TRASH": "نقل إلى سلة المهملات",
+    "TRASH_FILES_MESSAGE": "",
+    "TRASH_FILE_MESSAGE": "",
+    "DELETE_PERMANENTLY": "حذف بشكل دائم",
+    "RESTORE": "استعادة",
+    "RESTORE_TO_COLLECTION": "",
+    "EMPTY_TRASH": "إفراغ سلة المهملات",
+    "EMPTY_TRASH_TITLE": "إفراغ سلة المهملات؟",
+    "EMPTY_TRASH_MESSAGE": "",
+    "LEAVE_SHARED_ALBUM": "",
+    "LEAVE_ALBUM": "",
+    "LEAVE_SHARED_ALBUM_TITLE": "",
+    "LEAVE_SHARED_ALBUM_MESSAGE": "",
+    "NOT_FILE_OWNER": "",
+    "CONFIRM_SELF_REMOVE_MESSAGE": "",
+    "CONFIRM_SELF_AND_OTHER_REMOVE_MESSAGE": "",
+    "SORT_BY_CREATION_TIME_ASCENDING": "",
+    "SORT_BY_UPDATION_TIME_DESCENDING": "",
+    "SORT_BY_NAME": "",
+    "FIX_CREATION_TIME": "",
+    "FIX_CREATION_TIME_IN_PROGRESS": "",
+    "CREATION_TIME_UPDATED": "",
+    "UPDATE_CREATION_TIME_NOT_STARTED": "",
+    "UPDATE_CREATION_TIME_COMPLETED": "",
+    "UPDATE_CREATION_TIME_COMPLETED_WITH_ERROR": "",
+    "CAPTION_CHARACTER_LIMIT": "",
+    "DATE_TIME_ORIGINAL": "",
+    "DATE_TIME_DIGITIZED": "",
+    "METADATA_DATE": "",
+    "CUSTOM_TIME": "",
+    "REOPEN_PLAN_SELECTOR_MODAL": "",
+    "OPEN_PLAN_SELECTOR_MODAL_FAILED": "",
+    "INSTALL": "",
+    "SHARING_DETAILS": "",
+    "MODIFY_SHARING": "",
+    "ADD_COLLABORATORS": "",
+    "ADD_NEW_EMAIL": "",
+    "shared_with_people_count_zero": "",
+    "shared_with_people_count_one": "",
+    "shared_with_people_count": "",
+    "participants_count_zero": "",
+    "participants_count_one": "",
+    "participants_count": "",
+    "ADD_VIEWERS": "",
+    "CHANGE_PERMISSIONS_TO_VIEWER": "",
+    "CHANGE_PERMISSIONS_TO_COLLABORATOR": "",
+    "CONVERT_TO_VIEWER": "",
+    "CONVERT_TO_COLLABORATOR": "",
+    "CHANGE_PERMISSION": "",
+    "REMOVE_PARTICIPANT": "",
+    "CONFIRM_REMOVE": "",
+    "MANAGE": "",
+    "ADDED_AS": "",
+    "COLLABORATOR_RIGHTS": "",
+    "REMOVE_PARTICIPANT_HEAD": "",
+    "OWNER": "",
+    "COLLABORATORS": "",
+    "ADD_MORE": "",
+    "VIEWERS": "",
+    "OR_ADD_EXISTING": "",
+    "REMOVE_PARTICIPANT_MESSAGE": "",
+    "NOT_FOUND": "",
+    "LINK_EXPIRED": "",
+    "LINK_EXPIRED_MESSAGE": "",
+    "MANAGE_LINK": "",
+    "LINK_TOO_MANY_REQUESTS": "",
+    "FILE_DOWNLOAD": "",
+    "link_password_lock": "",
+    "PUBLIC_COLLECT": "",
+    "LINK_DEVICE_LIMIT": "",
+    "NO_DEVICE_LIMIT": "",
+    "LINK_EXPIRY": "",
+    "NEVER": "",
+    "DISABLE_FILE_DOWNLOAD": "",
+    "DISABLE_FILE_DOWNLOAD_MESSAGE": "",
+    "SHARED_USING": "",
+    "SHARING_REFERRAL_CODE": "",
+    "LIVE": "",
+    "DISABLE_PASSWORD": "",
+    "DISABLE_PASSWORD_MESSAGE": "",
+    "PASSWORD_LOCK": "",
+    "LOCK": "",
+    "DOWNLOAD_UPLOAD_LOGS": "",
+    "file": "",
+    "folder": "",
+    "google_takeout": "",
+    "DEDUPLICATE_FILES": "",
+    "NO_DUPLICATES_FOUND": "",
+    "FILES": "",
+    "EACH": "",
+    "DEDUPLICATE_BASED_ON_SIZE": "",
+    "STOP_ALL_UPLOADS_MESSAGE": "",
+    "STOP_UPLOADS_HEADER": "",
+    "YES_STOP_UPLOADS": "",
+    "STOP_DOWNLOADS_HEADER": "",
+    "YES_STOP_DOWNLOADS": "",
+    "STOP_ALL_DOWNLOADS_MESSAGE": "",
+    "albums_count_one": "",
+    "albums_count": "",
+    "ALL_ALBUMS": "",
+    "ALBUMS": "",
+    "ALL_HIDDEN_ALBUMS": "",
+    "HIDDEN_ALBUMS": "",
+    "HIDDEN_ITEMS": "",
+    "ENTER_TWO_FACTOR_OTP": "",
+    "CREATE_ACCOUNT": "",
+    "COPIED": "",
+    "WATCH_FOLDERS": "",
+    "upgrade_now": "",
+    "renew_now": "",
+    "STORAGE": "",
+    "USED": "",
+    "YOU": "",
+    "FAMILY": "",
+    "FREE": "",
+    "OF": "",
+    "WATCHED_FOLDERS": "",
+    "NO_FOLDERS_ADDED": "",
+    "FOLDERS_AUTOMATICALLY_MONITORED": "",
+    "UPLOAD_NEW_FILES_TO_ENTE": "",
+    "REMOVE_DELETED_FILES_FROM_ENTE": "",
+    "ADD_FOLDER": "",
+    "STOP_WATCHING": "",
+    "STOP_WATCHING_FOLDER": "",
+    "STOP_WATCHING_DIALOG_MESSAGE": "",
+    "YES_STOP": "",
+    "CHANGE_FOLDER": "",
+    "FAMILY_PLAN": "",
+    "DOWNLOAD_LOGS": "",
+    "DOWNLOAD_LOGS_MESSAGE": "",
+    "WEAK_DEVICE": "",
+    "drag_and_drop_hint": "",
+    "AUTHENTICATE": "",
+    "UPLOADED_TO_SINGLE_COLLECTION": "",
+    "UPLOADED_TO_SEPARATE_COLLECTIONS": "",
+    "NEVERMIND": "",
+    "UPDATE_AVAILABLE": "",
+    "UPDATE_INSTALLABLE_MESSAGE": "",
+    "INSTALL_NOW": "",
+    "INSTALL_ON_NEXT_LAUNCH": "",
+    "UPDATE_AVAILABLE_MESSAGE": "",
+    "DOWNLOAD_AND_INSTALL": "",
+    "IGNORE_THIS_VERSION": "",
+    "TODAY": "",
+    "YESTERDAY": "",
+    "NAME_PLACEHOLDER": "",
+    "ROOT_LEVEL_FILE_WITH_FOLDER_NOT_ALLOWED": "",
+    "ROOT_LEVEL_FILE_WITH_FOLDER_NOT_ALLOWED_MESSAGE": "",
+    "CHOSE_THEME": "",
+    "more_details": "",
+    "ml_search": "",
+    "ml_search_description": "",
+    "ml_search_footnote": "",
+    "indexing": "",
+    "processed": "",
+    "indexing_status_running": "",
+    "indexing_status_fetching": "",
+    "indexing_status_scheduled": "",
+    "indexing_status_done": "",
+    "ml_search_disable": "",
+    "ml_search_disable_confirm": "",
+    "ml_consent": "",
+    "ml_consent_title": "",
+    "ml_consent_description": "",
+    "ml_consent_confirmation": "",
+    "labs": "",
+    "YOURS": "",
+    "passphrase_strength_weak": "",
+    "passphrase_strength_moderate": "",
+    "passphrase_strength_strong": "",
+    "preferences": "",
+    "language": "",
+    "advanced": "",
+    "EXPORT_DIRECTORY_DOES_NOT_EXIST": "",
+    "EXPORT_DIRECTORY_DOES_NOT_EXIST_MESSAGE": "",
+    "SUBSCRIPTION_VERIFICATION_ERROR": "",
+    "storage_unit": {
+        "b": "",
+        "kb": "",
+        "mb": "",
+        "gb": "",
+        "tb": ""
+    },
+    "AFTER_TIME": {
+        "HOUR": "",
+        "DAY": "",
+        "WEEK": "",
+        "MONTH": "",
+        "YEAR": ""
+    },
+    "COPY_LINK": "",
+    "DONE": "",
+    "LINK_SHARE_TITLE": "",
+    "REMOVE_LINK": "",
+    "CREATE_PUBLIC_SHARING": "",
+    "PUBLIC_LINK_CREATED": "",
+    "PUBLIC_LINK_ENABLED": "",
+    "COLLECT_PHOTOS": "",
+    "PUBLIC_COLLECT_SUBTEXT": "",
+    "STOP_EXPORT": "",
+    "EXPORT_PROGRESS": "",
+    "MIGRATING_EXPORT": "",
+    "RENAMING_COLLECTION_FOLDERS": "",
+    "TRASHING_DELETED_FILES": "",
+    "TRASHING_DELETED_COLLECTIONS": "",
+    "CONTINUOUS_EXPORT": "",
+    "PENDING_ITEMS": "",
+    "EXPORT_STARTING": "",
+    "delete_account_reason_label": "",
+    "delete_account_reason_placeholder": "",
+    "delete_reason": {
+        "missing_feature": "",
+        "behaviour": "",
+        "found_another_service": "",
+        "not_listed": ""
+    },
+    "delete_account_feedback_label": "",
+    "delete_account_feedback_placeholder": "",
+    "delete_account_confirm_checkbox_label": "",
+    "delete_account_confirm": "",
+    "delete_account_confirm_message": "",
+    "feedback_required": "",
+    "feedback_required_found_another_service": "",
+    "RECOVER_TWO_FACTOR": "",
+    "at": "",
+    "AUTH_NEXT": "",
+    "AUTH_DOWNLOAD_MOBILE_APP": "",
+    "HIDDEN": "",
+    "HIDE": "",
+    "UNHIDE": "",
+    "UNHIDE_TO_COLLECTION": "",
+    "SORT_BY": "",
+    "NEWEST_FIRST": "",
+    "OLDEST_FIRST": "",
+    "CONVERSION_FAILED_NOTIFICATION_MESSAGE": "",
+    "SELECT_COLLECTION": "",
+    "PIN_ALBUM": "",
+    "UNPIN_ALBUM": "",
+    "DOWNLOAD_COMPLETE": "",
+    "DOWNLOADING_COLLECTION": "",
+    "DOWNLOAD_FAILED": "",
+    "DOWNLOAD_PROGRESS": "",
+    "CHRISTMAS": "",
+    "CHRISTMAS_EVE": "",
+    "NEW_YEAR": "",
+    "NEW_YEAR_EVE": "",
+    "IMAGE": "",
+    "VIDEO": "",
+    "LIVE_PHOTO": "",
+    "editor": {
+        "crop": ""
+    },
+    "CONVERT": "",
+    "CONFIRM_EDITOR_CLOSE_MESSAGE": "",
+    "CONFIRM_EDITOR_CLOSE_DESCRIPTION": "",
+    "BRIGHTNESS": "",
+    "CONTRAST": "",
+    "SATURATION": "",
+    "BLUR": "",
+    "INVERT_COLORS": "",
+    "ASPECT_RATIO": "",
+    "SQUARE": "",
+    "ROTATE_LEFT": "",
+    "ROTATE_RIGHT": "",
+    "FLIP_VERTICALLY": "",
+    "FLIP_HORIZONTALLY": "",
+    "DOWNLOAD_EDITED": "",
+    "SAVE_A_COPY_TO_ENTE": "",
+    "RESTORE_ORIGINAL": "",
+    "TRANSFORM": "",
+    "COLORS": "",
+    "FLIP": "",
+    "ROTATION": "",
+    "RESET": "",
+    "PHOTO_EDITOR": "",
+    "FASTER_UPLOAD": "",
+    "FASTER_UPLOAD_DESCRIPTION": "",
+    "CAST_ALBUM_TO_TV": "",
+    "ENTER_CAST_PIN_CODE": "",
+    "PAIR_DEVICE_TO_TV": "",
+    "TV_NOT_FOUND": "",
+    "AUTO_CAST_PAIR": "",
+    "AUTO_CAST_PAIR_DESC": "",
+    "PAIR_WITH_PIN": "",
+    "CHOOSE_DEVICE_FROM_BROWSER": "",
+    "PAIR_WITH_PIN_DESC": "",
+    "VISIT_CAST_ENTE_IO": "",
+    "CAST_AUTO_PAIR_FAILED": "",
+    "FREEHAND": "",
+    "APPLY_CROP": "",
+    "PHOTO_EDIT_REQUIRED_TO_SAVE": "",
+    "passkeys": "",
+    "passkey_fetch_failed": "",
+    "manage_passkey": "",
+    "delete_passkey": "",
+    "delete_passkey_confirmation": "",
+    "rename_passkey": "",
+    "add_passkey": "",
+    "enter_passkey_name": "",
+    "passkeys_description": "",
+    "CREATED_AT": "",
+    "passkey_add_failed": "",
+    "passkey_login_failed": "",
+    "passkey_login_invalid_url": "",
+    "passkey_login_already_claimed_session": "",
+    "passkey_login_generic_error": "",
+    "passkey_login_credential_hint": "",
+    "passkeys_not_supported": "",
+    "try_again": "",
+    "check_status": "",
+    "passkey_login_instructions": "",
+    "passkey_login": "",
+    "passkey": "",
+    "passkey_verify_description": "",
+    "waiting_for_verification": "",
+    "verification_still_pending": "",
+    "passkey_verified": "",
+    "redirecting_back_to_app": "",
+    "redirect_close_instructions": "",
+    "redirect_again": "",
+    "autogenerated_first_album_name": "",
+    "autogenerated_default_album_name": "",
+    "developer_settings": "",
+    "server_endpoint": "",
+    "more_information": "",
+    "save": ""
+}

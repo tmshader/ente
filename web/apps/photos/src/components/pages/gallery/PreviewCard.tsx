@@ -1,7 +1,7 @@
-import { FILE_TYPE } from "@/media/file-type";
+import log from "@/base/log";
+import { FileType } from "@/media/file-type";
 import DownloadManager from "@/new/photos/services/download";
 import { EnteFile } from "@/new/photos/types/file";
-import log from "@/next/log";
 import { Overlay } from "@ente/shared/components/Container";
 import { CustomError } from "@ente/shared/error";
 import useLongPress from "@ente/shared/hooks/useLongPress";
@@ -329,12 +329,12 @@ export default function PreviewCard(props: IProps) {
             ) : (
                 <LoadingThumbnail />
             )}
-            {file.metadata.fileType === FILE_TYPE.LIVE_PHOTO ? (
+            {file.metadata.fileType === FileType.livePhoto ? (
                 <FileTypeIndicatorOverlay>
                     <AlbumOutlined />
                 </FileTypeIndicatorOverlay>
             ) : (
-                file.metadata.fileType === FILE_TYPE.VIDEO && (
+                file.metadata.fileType === FileType.video && (
                     <FileTypeIndicatorOverlay>
                         <PlayCircleOutlineOutlinedIcon />
                     </FileTypeIndicatorOverlay>

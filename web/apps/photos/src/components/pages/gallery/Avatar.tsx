@@ -1,5 +1,5 @@
+import log from "@/base/log";
 import { EnteFile } from "@/new/photos/types/file";
-import log from "@/next/log";
 import { styled } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { GalleryContext } from "pages/gallery";
@@ -56,7 +56,7 @@ const Avatar: React.FC<AvatarProps> = ({ file, email, opacity }) => {
                 setUserLetter(email[0].toUpperCase());
                 setColorCode(colorCode);
             } else if (file.ownerID === user.id) {
-                const uploaderName = file.pubMagicMetadata.data.uploaderName;
+                const uploaderName = file.pubMagicMetadata?.data.uploaderName;
                 if (!uploaderName) {
                     log.error(
                         "uploaderName not found in file.pubMagicMetadata.data",

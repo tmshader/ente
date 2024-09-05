@@ -1,6 +1,9 @@
-import { FILE_TYPE } from "@/media/file-type";
+import { FileType } from "@/media/file-type";
 import type { MLStatus } from "@/new/photos/services/ml";
-import type { Person } from "@/new/photos/services/ml/people";
+import type {
+    SearchDateComponents,
+    SearchPerson,
+} from "@/new/photos/services/search/types";
 import { EnteFile } from "@/new/photos/types/file";
 import { City } from "services/locationSearchService";
 import { LocationTagData } from "types/entity";
@@ -18,35 +21,29 @@ export enum SuggestionType {
     CITY = "CITY",
 }
 
-export interface DateValue {
-    date?: number;
-    month?: number;
-    year?: number;
-}
-
 export interface Suggestion {
     type: SuggestionType;
     label: string;
     value:
-        | DateValue
+        | SearchDateComponents
         | number[]
-        | Person
+        | SearchPerson
         | MLStatus
         | LocationTagData
         | City
-        | FILE_TYPE
+        | FileType
         | ClipSearchScores;
     hide?: boolean;
 }
 
 export type Search = {
-    date?: DateValue;
+    date?: SearchDateComponents;
     location?: LocationTagData;
     city?: City;
     collection?: number;
     files?: number[];
-    person?: Person;
-    fileType?: FILE_TYPE;
+    person?: SearchPerson;
+    fileType?: FileType;
     clip?: ClipSearchScores;
 };
 

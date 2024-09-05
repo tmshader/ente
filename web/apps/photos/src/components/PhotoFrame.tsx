@@ -1,8 +1,8 @@
-import { FILE_TYPE } from "@/media/file-type";
+import log from "@/base/log";
+import { FileType } from "@/media/file-type";
 import DownloadManager from "@/new/photos/services/download";
 import type { LivePhotoSourceURL, SourceURLs } from "@/new/photos/types/file";
 import { EnteFile } from "@/new/photos/types/file";
-import log from "@/next/log";
 import { PHOTOS_PAGES } from "@ente/shared/constants/pages";
 import { CustomError } from "@ente/shared/error";
 import useMemoSingleThreaded from "@ente/shared/hooks/useMemoSingleThreaded";
@@ -360,7 +360,7 @@ const PhotoFrame = ({
             log.info(`[${item.id}] new file src request`);
             fetching[item.id] = true;
             const srcURLs = await DownloadManager.getFileForPreview(item);
-            if (item.metadata.fileType === FILE_TYPE.LIVE_PHOTO) {
+            if (item.metadata.fileType === FileType.livePhoto) {
                 const srcImgURL = srcURLs.url as LivePhotoSourceURL;
                 const imageURL = await srcImgURL.image();
 
@@ -453,8 +453,8 @@ const PhotoFrame = ({
         item: EnteFile,
     ) => {
         if (
-            item.metadata.fileType !== FILE_TYPE.VIDEO &&
-            item.metadata.fileType !== FILE_TYPE.LIVE_PHOTO
+            item.metadata.fileType !== FileType.video &&
+            item.metadata.fileType !== FileType.livePhoto
         ) {
             log.error("getConvertedVideo called for non video file");
             return;

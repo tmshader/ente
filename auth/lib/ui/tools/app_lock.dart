@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ente_auth/locale.dart';
+import 'package:ente_auth/utils/lock_screen_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -66,13 +67,13 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    super.initState();
+
     WidgetsBinding.instance.addObserver(this);
 
     this._didUnlockForAppLaunch = !this.widget.enabled;
     this._isLocked = false;
     this._enabled = this.widget.enabled;
-
-    super.initState();
   }
 
   @override
@@ -83,8 +84,12 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
 
     if (state == AppLifecycleState.paused &&
         (!this._isLocked && this._didUnlockForAppLaunch)) {
-      this._backgroundLockLatencyTimer =
-          Timer(this.widget.backgroundLockLatency, () => this.showLockScreen());
+      this._backgroundLockLatencyTimer = Timer(
+        Duration(
+          milliseconds: LockScreenSettings.instance.getAutoLockTime(),
+        ),
+        () => this.showLockScreen(),
+      );
     }
 
     if (state == AppLifecycleState.resumed) {

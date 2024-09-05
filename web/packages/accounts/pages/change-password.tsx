@@ -13,13 +13,13 @@ import {
 } from "@/accounts/services/srp";
 import type { UpdatedKey } from "@/accounts/types/user";
 import { convertBase64ToBuffer, convertBufferToBase64 } from "@/accounts/utils";
+import { sharedCryptoWorker } from "@/base/crypto";
 import { ensure } from "@/utils/ensure";
 import { VerticallyCentered } from "@ente/shared/components/Container";
 import FormPaper from "@ente/shared/components/Form/FormPaper";
 import FormPaperFooter from "@ente/shared/components/Form/FormPaper/Footer";
 import FormPaperTitle from "@ente/shared/components/Form/FormPaper/Title";
 import LinkButton from "@ente/shared/components/LinkButton";
-import ComlinkCryptoWorker from "@ente/shared/crypto";
 import {
     generateAndSaveIntermediateKeyAttributes,
     generateLoginSubKey,
@@ -47,7 +47,7 @@ const Page: React.FC<PageProps> = () => {
         setUser(user);
         if (!user?.token) {
             InMemoryStore.set(MS_KEYS.REDIRECT_URL, PAGES.CHANGE_PASSWORD);
-            router.push(PAGES.ROOT);
+            router.push("/");
         } else {
             setToken(user.token);
         }
@@ -57,7 +57,7 @@ const Page: React.FC<PageProps> = () => {
         passphrase,
         setFieldError,
     ) => {
-        const cryptoWorker = await ComlinkCryptoWorker.getInstance();
+        const cryptoWorker = await sharedCryptoWorker();
         const key = await getActualKey();
         const keyAttributes: KeyAttributes = getData(LS_KEYS.KEY_ATTRIBUTES);
         const kekSalt = await cryptoWorker.generateSaltToDeriveKey();

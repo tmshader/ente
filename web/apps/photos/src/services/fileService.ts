@@ -1,4 +1,11 @@
-import { getLocalFiles, setLocalFiles } from "@/new/photos/services/files";
+import { encryptMetadataJSON } from "@/base/crypto";
+import log from "@/base/log";
+import { apiURL } from "@/base/origins";
+import {
+    clearCachedThumbnailsIfChanged,
+    getLocalFiles,
+    setLocalFiles,
+} from "@/new/photos/services/files";
 import {
     EncryptedEnteFile,
     EnteFile,
@@ -8,15 +15,13 @@ import {
 } from "@/new/photos/types/file";
 import { BulkUpdateMagicMetadataRequest } from "@/new/photos/types/magicMetadata";
 import { mergeMetadata } from "@/new/photos/utils/file";
-import log from "@/next/log";
-import { apiURL } from "@/next/origins";
-import ComlinkCryptoWorker from "@ente/shared/crypto";
+import { batch } from "@/utils/array";
 import HTTPService from "@ente/shared/network/HTTPService";
 import { getToken } from "@ente/shared/storage/localStorage/helpers";
 import { REQUEST_BATCH_SIZE } from "constants/api";
+import exportService from "services/export";
 import { Collection } from "types/collection";
 import { SetFiles } from "types/gallery";
-import { batch } from "utils/common";
 import { decryptFile, getLatestVersionFiles, sortFiles } from "utils/file";
 import {
     getCollectionLastSyncTime,
@@ -30,9 +35,11 @@ export const syncFiles = async (
 ) => {
     const localFiles = await getLocalFiles(type);
     let files = await removeDeletedCollectionFiles(collections, localFiles);
+    let didUpdateFiles = false;
     if (files.length !== localFiles.length) {
         await setLocalFiles(type, files);
         setFiles(sortFiles(mergeMetadata(files)));
+        didUpdateFiles = true;
     }
     for (const collection of collections) {
         if (!getToken()) {
@@ -44,10 +51,13 @@ export const syncFiles = async (
         }
 
         const newFiles = await getFiles(collection, lastSyncTime, setFiles);
+        await clearCachedThumbnailsIfChanged(localFiles, newFiles);
         files = getLatestVersionFiles([...files, ...newFiles]);
         await setLocalFiles(type, files);
+        didUpdateFiles = true;
         setCollectionLastSyncTime(collection, collection.updationTime);
     }
+    if (didUpdateFiles) exportService.onLocalFilesUpdated();
     return files;
 };
 
@@ -181,23 +191,22 @@ export const updateFileMagicMetadata = async (
         return;
     }
     const reqBody: BulkUpdateMagicMetadataRequest = { metadataList: [] };
-    const cryptoWorker = await ComlinkCryptoWorker.getInstance();
     for (const {
         file,
         updatedMagicMetadata,
     } of fileWithUpdatedMagicMetadataList) {
-        const { file: encryptedMagicMetadata } =
-            await cryptoWorker.encryptMetadata(
-                updatedMagicMetadata.data,
-                file.key,
-            );
+        const { encryptedDataB64, decryptionHeaderB64 } =
+            await encryptMetadataJSON({
+                jsonValue: updatedMagicMetadata.data,
+                keyB64: file.key,
+            });
         reqBody.metadataList.push({
             id: file.id,
             magicMetadata: {
                 version: updatedMagicMetadata.version,
                 count: updatedMagicMetadata.count,
-                data: encryptedMagicMetadata.encryptedData,
-                header: encryptedMagicMetadata.decryptionHeader,
+                data: encryptedDataB64,
+                header: decryptionHeaderB64,
             },
         });
     }
@@ -228,23 +237,22 @@ export const updateFilePublicMagicMetadata = async (
         return;
     }
     const reqBody: BulkUpdateMagicMetadataRequest = { metadataList: [] };
-    const cryptoWorker = await ComlinkCryptoWorker.getInstance();
     for (const {
         file,
-        updatedPublicMagicMetadata: updatePublicMagicMetadata,
+        updatedPublicMagicMetadata,
     } of fileWithUpdatedPublicMagicMetadataList) {
-        const { file: encryptedPubMagicMetadata } =
-            await cryptoWorker.encryptMetadata(
-                updatePublicMagicMetadata.data,
-                file.key,
-            );
+        const { encryptedDataB64, decryptionHeaderB64 } =
+            await encryptMetadataJSON({
+                jsonValue: updatedPublicMagicMetadata.data,
+                keyB64: file.key,
+            });
         reqBody.metadataList.push({
             id: file.id,
             magicMetadata: {
-                version: updatePublicMagicMetadata.version,
-                count: updatePublicMagicMetadata.count,
-                data: encryptedPubMagicMetadata.encryptedData,
-                header: encryptedPubMagicMetadata.decryptionHeader,
+                version: updatedPublicMagicMetadata.version,
+                count: updatedPublicMagicMetadata.count,
+                data: encryptedDataB64,
+                header: decryptionHeaderB64,
             },
         });
     }

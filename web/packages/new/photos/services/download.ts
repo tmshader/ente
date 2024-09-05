@@ -1,7 +1,13 @@
 // TODO: Remove this override
 /* eslint-disable @typescript-eslint/no-empty-function */
 
-import { FILE_TYPE } from "@/media/file-type";
+import { isDesktop } from "@/base/app";
+import { blobCache, type BlobCache } from "@/base/blob-cache";
+import { sharedCryptoWorker } from "@/base/crypto";
+import { type CryptoWorker } from "@/base/crypto/worker";
+import log from "@/base/log";
+import { customAPIOrigin } from "@/base/origins";
+import { FileType } from "@/media/file-type";
 import { decodeLivePhoto } from "@/media/live-photo";
 import * as ffmpeg from "@/new/photos/services/ffmpeg";
 import type {
@@ -10,18 +16,11 @@ import type {
     SourceURLs,
 } from "@/new/photos/types/file";
 import { renderableImageBlob } from "@/new/photos/utils/file";
-import { isDesktop } from "@/next/app";
-import { blobCache, type BlobCache } from "@/next/blob-cache";
-import log from "@/next/log";
-import { customAPIOrigin } from "@/next/origins";
 import { ensure } from "@/utils/ensure";
-import ComlinkCryptoWorker from "@ente/shared/crypto";
-import { DedicatedCryptoWorker } from "@ente/shared/crypto/internal/crypto.worker";
 import { CustomError } from "@ente/shared/error";
 import { isPlaybackPossible } from "@ente/shared/media/video-playback";
 import HTTPService from "@ente/shared/network/HTTPService";
 import { retryAsyncFunction } from "@ente/shared/utils";
-import type { Remote } from "comlink";
 
 export type OnDownloadProgress = (event: {
     loaded: number;
@@ -52,7 +51,7 @@ class DownloadManagerImpl {
      * Only available when we're running in the desktop app.
      */
     private fileCache?: BlobCache;
-    private cryptoWorker: Remote<DedicatedCryptoWorker> | undefined;
+    private cryptoWorker: CryptoWorker | undefined;
 
     private fileObjectURLPromises = new Map<number, Promise<SourceURLs>>();
     private fileConversionPromises = new Map<number, Promise<SourceURLs>>();
@@ -85,7 +84,7 @@ class DownloadManagerImpl {
         // } catch (e) {
         //     log.error("Failed to open file cache, will continue without it", e);
         // }
-        this.cryptoWorker = await ComlinkCryptoWorker.getInstance();
+        this.cryptoWorker = await sharedCryptoWorker();
         this.ready = true;
     }
 
@@ -124,13 +123,12 @@ class DownloadManagerImpl {
     private downloadThumb = async (file: EnteFile) => {
         const { downloadClient, cryptoWorker } = this.ensureInitialized();
 
-        const encrypted = await downloadClient.downloadThumbnail(file);
-        const decrypted = await cryptoWorker.decryptThumbnail(
-            encrypted,
-            await cryptoWorker.fromB64(file.thumbnail.decryptionHeader),
+        const encryptedData = await downloadClient.downloadThumbnail(file);
+        const decryptionHeader = file.thumbnail.decryptionHeader;
+        return cryptoWorker.decryptThumbnail(
+            { encryptedData, decryptionHeader },
             file.key,
         );
-        return decrypted;
     };
 
     async getThumbnail(file: EnteFile, localOnly = false) {
@@ -269,8 +267,8 @@ class DownloadManagerImpl {
         const cacheKey = file.id.toString();
 
         if (
-            file.metadata.fileType === FILE_TYPE.IMAGE ||
-            file.metadata.fileType === FILE_TYPE.LIVE_PHOTO
+            file.metadata.fileType === FileType.image ||
+            file.metadata.fileType === FileType.livePhoto
         ) {
             const cachedBlob = await this.fileCache?.get(cacheKey);
             let encryptedArrayBuffer = await cachedBlob?.arrayBuffer();
@@ -457,7 +455,7 @@ async function getRenderableFileURL(
     let mimeType: string | undefined;
 
     switch (file.metadata.fileType) {
-        case FILE_TYPE.IMAGE: {
+        case FileType.image: {
             const convertedBlob = await renderableImageBlob(
                 file.metadata.title,
                 fileBlob,
@@ -466,17 +464,17 @@ async function getRenderableFileURL(
             url = convertedURL;
             isOriginal = convertedURL === originalFileURL;
             isRenderable = !!convertedURL;
-            mimeType = convertedBlob?.type;
+            mimeType = convertedBlob.type;
             break;
         }
-        case FILE_TYPE.LIVE_PHOTO: {
+        case FileType.livePhoto: {
             url = await getRenderableLivePhotoURL(file, fileBlob, forceConvert);
             isOriginal = false;
             isRenderable = false;
             type = "livePhoto";
             break;
         }
-        case FILE_TYPE.VIDEO: {
+        case FileType.video: {
             const convertedBlob = await getPlayableVideo(
                 file.metadata.title,
                 fileBlob,
@@ -511,13 +509,9 @@ async function getRenderableLivePhotoURL(
     const getRenderableLivePhotoImageURL = async () => {
         try {
             const imageBlob = new Blob([livePhoto.imageData]);
-            const convertedImageBlob = await renderableImageBlob(
-                livePhoto.imageFileName,
-                imageBlob,
+            return URL.createObjectURL(
+                await renderableImageBlob(livePhoto.imageFileName, imageBlob),
             );
-            if (!convertedImageBlob) return undefined;
-
-            return URL.createObjectURL(convertedImageBlob);
         } catch (e) {
             //ignore and return null
             return undefined;

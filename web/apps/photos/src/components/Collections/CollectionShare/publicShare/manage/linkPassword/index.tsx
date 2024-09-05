@@ -33,9 +33,9 @@ export function ManageLinkPassword({
         appContext.setDialogMessage({
             title: t("DISABLE_PASSWORD"),
             content: t("DISABLE_PASSWORD_MESSAGE"),
-            close: { text: t("CANCEL") },
+            close: { text: t("cancel") },
             proceed: {
-                text: t("DISABLE"),
+                text: t("disable"),
                 action: () =>
                     updatePublicShareURLHelper({
                         collectionID: collection.id,

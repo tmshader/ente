@@ -1,16 +1,15 @@
+import log from "@/base/log";
 import { initiateEmail } from "@/new/photos/utils/web";
-import log from "@/next/log";
 import DialogBoxV2 from "@ente/shared/components/DialogBoxV2";
 import EnteButton from "@ente/shared/components/EnteButton";
-import { Button, Link, Stack } from "@mui/material";
+import { Button, Link, Stack, useMediaQuery } from "@mui/material";
 import { Formik, type FormikHelpers } from "formik";
 import { t } from "i18next";
 import { AppContext } from "pages/_app";
 import { GalleryContext } from "pages/gallery";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { Trans } from "react-i18next";
 import { deleteAccount, getAccountDeleteChallenge } from "services/userService";
-import { preloadImage } from "utils/common";
 import { decryptDeleteAccountChallenge } from "utils/crypto";
 import * as Yup from "yup";
 import { CheckboxInput } from "./CheckboxInput";
@@ -28,18 +27,16 @@ interface FormValues {
 }
 
 const DeleteAccountModal = ({ open, onClose }: Iprops) => {
-    const { setDialogBoxAttributesV2, isMobile, logout } =
-        useContext(AppContext);
+    const { setDialogBoxAttributesV2, logout } = useContext(AppContext);
     const { authenticateUser } = useContext(GalleryContext);
+
     const [loading, setLoading] = useState(false);
     const deleteAccountChallenge = useRef<string>();
 
     const [acceptDataDeletion, setAcceptDataDeletion] = useState(false);
     const reasonAndFeedbackRef = useRef<{ reason: string; feedback: string }>();
 
-    useEffect(() => {
-        preloadImage("/images/delete-account");
-    }, []);
+    const isMobile = useMediaQuery("(max-width: 428px)");
 
     const somethingWentWrong = () =>
         setDialogBoxAttributesV2({
@@ -94,7 +91,7 @@ const DeleteAccountModal = ({ open, onClose }: Iprops) => {
                 action: solveChallengeAndDeleteAccount,
                 variant: "critical",
             },
-            close: { text: t("CANCEL") },
+            close: { text: t("cancel") },
         });
     };
 
@@ -115,7 +112,7 @@ const DeleteAccountModal = ({ open, onClose }: Iprops) => {
                 action: () => initiateEmail(emailID),
                 variant: "critical",
             },
-            close: { text: t("CANCEL") },
+            close: { text: t("cancel") },
         });
     };
 
@@ -149,7 +146,7 @@ const DeleteAccountModal = ({ open, onClose }: Iprops) => {
                     title: t("delete_account"),
                     secondary: {
                         action: onClose,
-                        text: t("CANCEL"),
+                        text: t("cancel"),
                     },
                 }}
             >
@@ -217,7 +214,7 @@ const DeleteAccountModal = ({ open, onClose }: Iprops) => {
                                         color={"secondary"}
                                         onClick={onClose}
                                     >
-                                        {t("CANCEL")}
+                                        {t("cancel")}
                                     </Button>
                                 </Stack>
                             </Stack>

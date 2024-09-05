@@ -3,15 +3,14 @@
  */
 import { net, protocol } from "electron/main";
 import { randomUUID } from "node:crypto";
-import { createWriteStream, existsSync } from "node:fs";
 import fs from "node:fs/promises";
-import { Readable } from "node:stream";
-import { ReadableStream } from "node:stream/web";
+import { Writable } from "node:stream";
 import { pathToFileURL } from "node:url";
 import log from "./log";
 import { ffmpegConvertToMP4 } from "./services/ffmpeg";
 import { markClosableZip, openZip } from "./services/zip";
 import { ensure } from "./utils/common";
+import { writeStream } from "./utils/stream";
 import {
     deleteTempFile,
     deleteTempFileIgnoringErrors,
@@ -120,20 +119,27 @@ const handleReadZip = async (zipPath: string, entryName: string) => {
         return new Response("", { status: 404 });
     }
 
-    // This returns an "old style" NodeJS.ReadableStream.
+    // zip.stream returns an "old style" NodeJS.ReadableStream. We then write it
+    // to the writable end of the web stream pipe, the readable end of which is
+    // relayed back to the renderer as the response.
+    const { writable, readable } = new TransformStream();
     const stream = await zip.stream(entry);
-    // Convert it into a new style NodeJS.Readable.
-    const nodeReadable = new Readable({ emitClose: true }).wrap(stream);
-    // Then convert it into a Web stream.
-    const webReadableStreamAny = Readable.toWeb(nodeReadable);
-    // However, we get a ReadableStream<any> now. This doesn't go into the
-    // `BodyInit` expected by the Response constructor, which wants a
-    // ReadableStream<Uint8Array>. Force a cast.
-    const webReadableStream =
-        webReadableStreamAny as ReadableStream<Uint8Array>;
 
-    // Let go of the zip handle when the underlying stream closes.
-    nodeReadable.on("close", () => markClosableZip(zipPath));
+    const nodeWritable = Writable.fromWeb(writable);
+    stream.pipe(nodeWritable);
+
+    nodeWritable.on("error", (e: unknown) => {
+        // If the renderer process closes the network connection (say when it
+        // only needs the content-length and doesn't care about the body), we
+        // get an AbortError. Handle them here otherwise they litter the logs
+        // with unhandled exceptions.
+        if (e instanceof Error && e.name == "AbortError") return;
+        log.error("Error event for the writable end of zip stream", e);
+    });
+
+    nodeWritable.on("close", () => {
+        markClosableZip(zipPath);
+    });
 
     // While it is documented that entry.time is the modification time,
     // the units are not mentioned. By seeing the source code, we can
@@ -142,7 +148,7 @@ const handleReadZip = async (zipPath: string, entryName: string) => {
     // https://github.com/antelle/node-stream-zip/blob/master/node_stream_zip.js
     const modifiedMs = entry.time;
 
-    return new Response(webReadableStream, {
+    return new Response(readable, {
         headers: {
             // We don't know the exact type, but it doesn't really matter, just
             // set it to a generic binary content-type so that the browser
@@ -157,39 +163,6 @@ const handleReadZip = async (zipPath: string, entryName: string) => {
 const handleWrite = async (path: string, request: Request) => {
     await writeStream(path, ensure(request.body));
     return new Response("", { status: 200 });
-};
-
-/**
- * Write a (web) ReadableStream to a file at the given {@link filePath}.
- *
- * The returned promise resolves when the write completes.
- *
- * @param filePath The local file system path where the file should be written.
- *
- * @param readableStream A web
- * [ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
- */
-export const writeStream = (filePath: string, readableStream: ReadableStream) =>
-    writeNodeStream(filePath, Readable.fromWeb(readableStream));
-
-const writeNodeStream = async (filePath: string, fileStream: Readable) => {
-    const writeable = createWriteStream(filePath);
-
-    fileStream.on("error", (err) => {
-        writeable.destroy(err); // Close the writable stream with an error
-    });
-
-    fileStream.pipe(writeable);
-
-    await new Promise((resolve, reject) => {
-        writeable.on("finish", resolve);
-        writeable.on("error", (err) => {
-            if (existsSync(filePath)) {
-                void fs.unlink(filePath);
-            }
-            reject(err);
-        });
-    });
 };
 
 /**

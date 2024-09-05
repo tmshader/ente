@@ -5,12 +5,13 @@
 #    load one of the files from the `configurations/` directory. If not present,
 #    then by default `local.yaml` (this file) will get loaded.
 #
-# 2. Then, museum will look for a file named `museum.yaml` in the current
-#    working directory. If found, this file will also be loaded, and entries
-#    specified therein will override the defaults specified here.
+# 2. If the "credentials-file" config option is set then museum will look for
+#    that file. If found, that file will also be loaded, and entries specified
+#    therein will override the defaults specified here.
 #
-# 3. If the "credentials-file" config option is set, then museum will also load
-#    that and merge it in.
+# 3. Then, museum will look for a file named `museum.yaml` (gitignored) in the
+#    current working directory. If found, this file will also be loaded and
+#    merged.
 #
 # 4. Config can be overridden with via environment variables (details below).
 #
@@ -91,6 +92,9 @@ db:
     # as ENTE_DB_USER and ENTE_DB_PASSWORD.
     user:
     password:
+    # This can be used to provide parameters that are appended verbatim to the
+    # generated DSN used for connecting to the DB.
+    # extra:
 
 # Map of data centers
 #
@@ -169,6 +173,18 @@ s3:
     # resolved, e.g. when running a local instance, or when using MinIO as a
     # production store.
     #use_path_style_urls: true
+    #
+    # Warning: For file-storage, do not specify buckets with any lock or versioning enabled.
+    # The application does not handle these cases. By default, we will use the derived-storage or hot storage bucket
+    # as the primary bucket for file-data-config.
+    # file-data-config:
+    #     mldata:
+    #         primaryBucket:
+    #         replicaBuckets: []
+    #     img_preview:
+    #         primaryBucket:
+    #         replicaBuckets: []
+
 
 # Key used for encrypting customer emails before storing them in DB
 #
@@ -308,6 +324,7 @@ internal:
     #     local-domain-suffix: "@example.org"
     #     local-domain-value: 123456
     # List of user IDs that can use the admin API endpoints.
+    # If this is not set, as a fallback, the first user is considered an admin.
     admins: []
 
 # Replication config

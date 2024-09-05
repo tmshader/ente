@@ -5,7 +5,9 @@ import {
 } from "@/accounts/api/user";
 import { PAGES } from "@/accounts/constants/pages";
 import type { AccountsContextT } from "@/accounts/types/context";
-import log from "@/next/log";
+import { sharedCryptoWorker } from "@/base/crypto";
+import type { B64EncryptionResult } from "@/base/crypto/libsodium";
+import log from "@/base/log";
 import { ensure } from "@/utils/ensure";
 import { VerticallyCentered } from "@ente/shared/components/Container";
 import type { DialogBoxAttributesV2 } from "@ente/shared/components/DialogBoxV2/types";
@@ -16,9 +18,6 @@ import LinkButton from "@ente/shared/components/LinkButton";
 import SingleInputForm, {
     type SingleInputFormProps,
 } from "@ente/shared/components/SingleInputForm";
-import { SUPPORT_EMAIL } from "@ente/shared/constants/urls";
-import ComlinkCryptoWorker from "@ente/shared/crypto";
-import type { B64EncryptionResult } from "@ente/shared/crypto/internal/libsodium";
 import { ApiError } from "@ente/shared/error";
 import {
     LS_KEYS,
@@ -57,7 +56,7 @@ const Page: React.FC<RecoverPageProps> = ({ appContext, twoFactorType }) => {
         const user = getData(LS_KEYS.USER);
         const sid = user.passkeySessionID || user.twoFactorSessionID;
         if (!user || !user.email || !sid) {
-            router.push(PAGES.ROOT);
+            router.push("/");
         } else if (
             !(user.isTwoFactorEnabled || user.isTwoFactorEnabledPasskey) &&
             (user.encryptedToken || user.token)
@@ -118,7 +117,7 @@ const Page: React.FC<RecoverPageProps> = ({ appContext, twoFactorType }) => {
                 }
                 recoveryKey = bip39.mnemonicToEntropy(recoveryKey);
             }
-            const cryptoWorker = await ComlinkCryptoWorker.getInstance();
+            const cryptoWorker = await sharedCryptoWorker();
             const { encryptedData, nonce } = ensure(encryptedTwoFactorSecret);
             const twoFactorSecret = await cryptoWorker.decryptB64(
                 encryptedData,
@@ -155,10 +154,10 @@ const Page: React.FC<RecoverPageProps> = ({ appContext, twoFactorType }) => {
             content: (
                 <Trans
                     i18nKey={"NO_TWO_FACTOR_RECOVERY_KEY_MESSAGE"}
-                    values={{ emailID: SUPPORT_EMAIL }}
                     components={{
-                        a: <Link href={`mailto:${SUPPORT_EMAIL}`} />,
+                        a: <Link href="mailto:support@ente.io" />,
                     }}
+                    values={{ emailID: "support@ente.io" }}
                 />
             ),
         });

@@ -341,7 +341,6 @@ func (c *FileController) CleanUpStaleCollectionFiles(userID int64, fileID int64)
 	err = c.TrashRepository.CleanUpDeletedFilesFromCollection(context.Background(), fileIDs, userID)
 	if err != nil {
 		logger.WithError(err).Error("Failed to clean up stale files from collection")
-
 	}
 
 }
@@ -383,10 +382,14 @@ func (c *FileController) getSignedURLForType(ctx *gin.Context, fileID int64, obj
 	return c.getHotDcSignedUrl(s3Object.ObjectKey)
 }
 
+// ignore lint unused inspection
 func isCliRequest(ctx *gin.Context) bool {
+	// todo: (neeraj) remove this short-circuit after wasabi migration
+	return false
 	// check if user-agent contains go-resty
-	userAgent := ctx.Request.Header.Get("User-Agent")
-	return strings.Contains(userAgent, "go-resty")
+	//userAgent := ctx.Request.Header.Get("User-Agent")
+	//return strings.Contains(userAgent, "go-resty")
+
 }
 
 // getWasabiSignedUrlIfAvailable returns a signed URL for the given fileID and objectType. It prefers wasabi over b2
@@ -496,10 +499,22 @@ func (c *FileController) GetFileInfo(ctx *gin.Context, userID int64, fileIDs []i
 	// prepare a list of FileInfoResponse
 	fileInfoList := make([]*ente.FileInfoResponse, 0)
 	for _, fileID := range fileIDs {
-		fileInfoList = append(fileInfoList, &ente.FileInfoResponse{
-			ID:       fileID,
-			FileInfo: *fileInfoResponse[fileID],
-		})
+		id := fileID
+		fileInfo := fileInfoResponse[id]
+		if fileInfo == nil {
+			// This should be happening only for older users who may have a stale
+			// collection_file entry for a file that user has deleted
+			log.WithField("fileID", id).Error("fileInfo not found")
+			fileInfoList = append(fileInfoList, &ente.FileInfoResponse{
+				ID:       id,
+				FileInfo: ente.FileInfo{FileSize: -1, ThumbnailSize: -1},
+			})
+		} else {
+			fileInfoList = append(fileInfoList, &ente.FileInfoResponse{
+				ID:       id,
+				FileInfo: *fileInfo,
+			})
+		}
 	}
 	return &ente.FilesInfoResponse{
 		FilesInfo: fileInfoList,
@@ -630,7 +645,14 @@ func (c *FileController) validateUpdateMetadataRequest(ctx *gin.Context, req ent
 			}).Error("can't update magic metadata for file which isn't owned by use")
 			return stacktrace.Propagate(ente.ErrPermissionDenied, "")
 		}
-		if existingMetadata != nil && (existingMetadata.Version != updateMMdRequest.MagicMetadata.Version || existingMetadata.Count > updateMMdRequest.MagicMetadata.Count) {
+		oldToNewCountDiff := 0
+		if existingMetadata != nil {
+			oldToNewCountDiff = existingMetadata.Count - updateMMdRequest.MagicMetadata.Count
+		}
+		// Return an error if there is a version mismatch with the previous metadata
+		// or if the new metadata contains an unexpectedly lower number of keys
+		// (oldToNewCountDiff difference is > 2), which may indicate potential data loss due to potentially buggy client.
+		if existingMetadata != nil && (existingMetadata.Version != updateMMdRequest.MagicMetadata.Version || oldToNewCountDiff > 2) {
 			log.WithFields(log.Fields{
 				"existing_count":   existingMetadata.Count,
 				"existing_version": existingMetadata.Version,

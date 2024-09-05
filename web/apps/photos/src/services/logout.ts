@@ -1,8 +1,8 @@
 import { accountLogout } from "@/accounts/services/logout";
+import log from "@/base/log";
 import DownloadManager from "@/new/photos/services/download";
 import { clearFeatureFlagSessionState } from "@/new/photos/services/feature-flags";
 import { logoutML, terminateMLWorker } from "@/new/photos/services/ml";
-import log from "@/next/log";
 import exportService from "./export";
 
 /**
@@ -22,7 +22,7 @@ export const photosLogout = async () => {
     // See: [Note: Caching IDB instances in separate execution contexts].
 
     try {
-        terminateMLWorker();
+        await terminateMLWorker();
     } catch (e) {
         ignoreError("face", e);
     }
@@ -32,6 +32,8 @@ export const photosLogout = async () => {
     await accountLogout();
 
     // - Photos specific logout
+
+    log.info("logout (photos)");
 
     try {
         clearFeatureFlagSessionState();

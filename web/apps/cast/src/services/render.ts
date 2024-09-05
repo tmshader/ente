@@ -5,7 +5,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import { FILE_TYPE } from "@/media/file-type";
+import { sharedCryptoWorker } from "@/base/crypto";
+import { nameAndExtension } from "@/base/file";
+import log from "@/base/log";
+import { apiURL, customAPIOrigin } from "@/base/origins";
+import { FileType } from "@/media/file-type";
 import { isHEICExtension, needsJPEGConversion } from "@/media/formats";
 import { heicToJPEG } from "@/media/heic-convert";
 import { decodeLivePhoto } from "@/media/live-photo";
@@ -15,13 +19,10 @@ import type {
     FileMagicMetadata,
     FilePublicMagicMetadata,
 } from "@/new/photos/types/file";
-import { nameAndExtension } from "@/next/file";
-import log from "@/next/log";
-import { apiURL, customAPIOrigin } from "@/next/origins";
+import { mergeMetadata1 } from "@/new/photos/utils/file";
 import { shuffled } from "@/utils/array";
 import { ensure } from "@/utils/ensure";
 import { wait } from "@/utils/promise";
-import ComlinkCryptoWorker from "@ente/shared/crypto";
 import { ApiError } from "@ente/shared/error";
 import HTTPService from "@ente/shared/network/HTTPService";
 import type { AxiosResponse } from "axios";
@@ -188,7 +189,7 @@ const decryptEnteFile = async (
     encryptedFile: EncryptedEnteFile,
     collectionKey: string,
 ): Promise<EnteFile> => {
-    const worker = await ComlinkCryptoWorker.getInstance();
+    const worker = await sharedCryptoWorker();
     const {
         encryptedKey,
         keyDecryptionNonce,
@@ -202,16 +203,17 @@ const decryptEnteFile = async (
         keyDecryptionNonce,
         collectionKey,
     );
-    const fileMetadata = await worker.decryptMetadata(
-        metadata.encryptedData,
-        metadata.decryptionHeader,
-        fileKey,
-    );
+    const fileMetadata = await worker.decryptMetadataJSON({
+        encryptedDataB64: metadata.encryptedData,
+        decryptionHeaderB64: metadata.decryptionHeader,
+        keyB64: fileKey,
+    });
     let fileMagicMetadata: FileMagicMetadata | undefined;
     let filePubMagicMetadata: FilePublicMagicMetadata | undefined;
     if (magicMetadata?.data) {
         fileMagicMetadata = {
             ...encryptedFile.magicMetadata,
+            // @ts-expect-error TODO: Need to use zod here.
             data: await worker.decryptMetadata(
                 magicMetadata.data,
                 magicMetadata.header,
@@ -222,6 +224,7 @@ const decryptEnteFile = async (
     if (pubMagicMetadata?.data) {
         filePubMagicMetadata = {
             ...pubMagicMetadata,
+            // @ts-expect-error TODO: Need to use zod here.
             data: await worker.decryptMetadata(
                 pubMagicMetadata.data,
                 pubMagicMetadata.header,
@@ -229,22 +232,15 @@ const decryptEnteFile = async (
             ),
         };
     }
-    const file = {
+    return mergeMetadata1({
         ...restFileProps,
         key: fileKey,
+        // @ts-expect-error The types need to be updated here
         metadata: fileMetadata,
+        // @ts-expect-error The types need to be updated here
         magicMetadata: fileMagicMetadata,
         pubMagicMetadata: filePubMagicMetadata,
-    };
-    if (file.pubMagicMetadata?.data.editedTime) {
-        file.metadata.creationTime = file.pubMagicMetadata.data.editedTime;
-    }
-    if (file.pubMagicMetadata?.data.editedName) {
-        file.metadata.title = file.pubMagicMetadata.data.editedName;
-    }
-    // @ts-expect-error TODO: The core types need to be updated to allow the
-    // possibility of missing metadata fields.
-    return file;
+    });
 };
 
 const isFileEligible = (file: EnteFile) => {
@@ -268,7 +264,7 @@ const isFileEligible = (file: EnteFile) => {
 
 const isImageOrLivePhoto = (file: EnteFile) => {
     const fileType = file.metadata.fileType;
-    return fileType == FILE_TYPE.IMAGE || fileType == FILE_TYPE.LIVE_PHOTO;
+    return fileType == FileType.image || fileType == FileType.livePhoto;
 };
 
 /**
@@ -289,7 +285,7 @@ const renderableImageBlob = async (castToken: string, file: EnteFile) => {
     let blob = await downloadFile(castToken, file, shouldUseThumbnail);
 
     let fileName = file.metadata.title;
-    if (!shouldUseThumbnail && file.metadata.fileType == FILE_TYPE.LIVE_PHOTO) {
+    if (!shouldUseThumbnail && file.metadata.fileType == FileType.livePhoto) {
         const { imageData, imageFileName } = await decodeLivePhoto(
             fileName,
             blob,
@@ -347,7 +343,7 @@ const downloadFile = async (
             `Failed to fetch file with ID ${file.id}: HTTP ${res.status}`,
         );
 
-    const cryptoWorker = await ComlinkCryptoWorker.getInstance();
+    const cryptoWorker = await sharedCryptoWorker();
     const decrypted = await cryptoWorker.decryptFile(
         new Uint8Array(await res.arrayBuffer()),
         await cryptoWorker.fromB64(

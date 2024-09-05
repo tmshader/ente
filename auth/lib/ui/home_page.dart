@@ -55,6 +55,9 @@ class _HomePageState extends State<HomePage> {
   final Logger _logger = Logger("HomePage");
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // Used to request focus on the search box when clicked the search icon
+  late FocusNode searchBoxFocusNode;
+
   final TextEditingController _textController = TextEditingController();
   final bool _autoFocusSearch =
       PreferenceService.instance.shouldAutoFocusOnSearchBar();
@@ -89,6 +92,8 @@ class _HomePageState extends State<HomePage> {
       setState(() {});
     });
     _showSearchBox = _autoFocusSearch;
+
+    searchBoxFocusNode = FocusNode();
   }
 
   void _loadCodes() {
@@ -158,6 +163,9 @@ class _HomePageState extends State<HomePage> {
     _triggerLogoutEvent?.cancel();
     _iconsChangedEvent?.cancel();
     _textController.removeListener(_applyFilteringAndRefresh);
+
+    searchBoxFocusNode.dispose();
+
     super.dispose();
   }
 
@@ -241,6 +249,7 @@ class _HomePageState extends State<HomePage> {
                     border: InputBorder.none,
                     focusedBorder: InputBorder.none,
                   ),
+                  focusNode: searchBoxFocusNode,
                 ),
           centerTitle: true,
           actions: <Widget>[
@@ -258,6 +267,12 @@ class _HomePageState extends State<HomePage> {
                       _searchText = "";
                     } else {
                       _searchText = _textController.text;
+
+                      // Request focus on the search box
+                      // For Windows only for now. "Platform.isWindows" can be removed if other platforms has been tested.
+                      if (Platform.isWindows) {
+                        searchBoxFocusNode.requestFocus();
+                      }
                     }
                     _applyFilteringAndRefresh();
                   },
@@ -348,8 +363,8 @@ class _HomePageState extends State<HomePage> {
                     return CodeErrorWidget(
                       errors: _allCodes
                               ?.where((element) => element.hasError)
-                              .length ??
-                          0,
+                              .toList() ??
+                          [],
                     );
                   }
                   final newIndex = index - indexOffset;
@@ -409,7 +424,7 @@ class _HomePageState extends State<HomePage> {
     final appLinks = AppLinks();
     try {
       String? initialLink;
-      initialLink = await appLinks.getInitialAppLinkString();
+      initialLink = await appLinks.getInitialLinkString();
       // Parse the link and warn the user, if it is not correct,
       // but keep in mind it could be `null`.
       if (initialLink != null) {

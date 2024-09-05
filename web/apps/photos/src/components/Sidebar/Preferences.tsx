@@ -1,15 +1,14 @@
-import { MLSettings } from "@/new/photos/components/MLSettings";
-import { isMLSupported } from "@/new/photos/services/ml";
-import { EnteDrawer } from "@/new/shared/components/EnteDrawer";
-import { MenuItemGroup, MenuSectionTitle } from "@/new/shared/components/Menu";
-import { Titlebar } from "@/new/shared/components/Titlebar";
+import { EnteDrawer } from "@/base/components/EnteDrawer";
+import { MenuItemGroup, MenuSectionTitle } from "@/base/components/Menu";
+import { Titlebar } from "@/base/components/Titlebar";
 import {
     getLocaleInUse,
-    pt,
     setLocaleInUse,
     supportedLocales,
     type SupportedLocale,
-} from "@/next/i18n";
+} from "@/base/i18n";
+import { MLSettings } from "@/new/photos/components/MLSettings";
+import { isMLSupported } from "@/new/photos/services/ml";
 import { EnteMenuItem } from "@ente/shared/components/Menu/EnteMenuItem";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import ScienceIcon from "@mui/icons-material/Science";
@@ -17,11 +16,16 @@ import { Box, DialogProps, Stack } from "@mui/material";
 import DropdownInput from "components/DropdownInput";
 import { t } from "i18next";
 import { AppContext } from "pages/_app";
-import { useContext, useState } from "react";
-import AdvancedSettings from "./AdvancedSettings";
-import MapSettings from "./MapSetting";
+import React, { useContext, useState } from "react";
+import { AdvancedSettings } from "./AdvancedSettings";
+import { MapSettings } from "./MapSetting";
+import type { SettingsDrawerProps } from "./types";
 
-export default function Preferences({ open, onClose, onRootClose }) {
+export const Preferences: React.FC<SettingsDrawerProps> = ({
+    open,
+    onClose,
+    onRootClose,
+}) => {
     const appContext = useContext(AppContext);
 
     const [advancedSettingsView, setAdvancedSettingsView] = useState(false);
@@ -59,7 +63,7 @@ export default function Preferences({ open, onClose, onRootClose }) {
             <Stack spacing={"4px"} py={"12px"}>
                 <Titlebar
                     onClose={onClose}
-                    title={t("PREFERENCES")}
+                    title={t("preferences")}
                     onRootClose={handleRootClose}
                 />
                 <Box px={"8px"}>
@@ -73,26 +77,21 @@ export default function Preferences({ open, onClose, onRootClose }) {
                         <EnteMenuItem
                             onClick={openAdvancedSettings}
                             endIcon={<ChevronRight />}
-                            label={t("ADVANCED")}
+                            label={t("advanced")}
                         />
                         {isMLSupported && (
                             <Box>
                                 <MenuSectionTitle
-                                    title={t("LABS")}
+                                    title={t("labs")}
                                     icon={<ScienceIcon />}
                                 />
                                 <MenuItemGroup>
                                     <EnteMenuItem
                                         endIcon={<ChevronRight />}
                                         onClick={() => setOpenMLSettings(true)}
-                                        label={pt("ML search")}
+                                        label={t("ml_search")}
                                     />
                                 </MenuItemGroup>
-                                <MenuSectionTitle
-                                    title={pt(
-                                        "Face recognition, magic search and more",
-                                    )}
-                                />
                             </Box>
                         )}
                     </Stack>
@@ -116,7 +115,7 @@ export default function Preferences({ open, onClose, onRootClose }) {
             />
         </EnteDrawer>
     );
-}
+};
 
 const LanguageSelector = () => {
     const locale = getLocaleInUse();
@@ -138,7 +137,7 @@ const LanguageSelector = () => {
     return (
         <DropdownInput
             options={options}
-            label={t("LANGUAGE")}
+            label={t("language")}
             labelProps={{ color: "text.muted" }}
             selected={locale}
             setSelected={updateCurrentLocale}

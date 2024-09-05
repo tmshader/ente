@@ -108,7 +108,7 @@ func GetFreeSubscription(userID int64) ente.Subscription {
 		ProductID:             ente.FreePlanProductID,
 		OriginalTransactionID: ente.FreePlanTransactionID,
 		Storage:               ente.FreePlanStorage,
-		ExpiryTime:            time.NDaysFromNow(ente.TrialPeriodDuration),
+		ExpiryTime:            time.NYearsFromNow(ente.TrialPeriodDuration),
 	}
 }
 
@@ -122,14 +122,14 @@ func GetFreePlan() ente.FreePlan {
 
 func GetActivePlanIDs() []string {
 	return []string{
-		"50gb_monthly",
-		"200gb_monthly",
-		"500gb_monthly",
-		"2000gb_monthly",
-		"50gb_yearly",
-		"200gb_yearly",
-		"500gb_yearly",
-		"2000gb_yearly",
+		"50gb_monthly_v4",
+		"200gb_monthly_v4",
+		"1000gb_monthly_v4",
+		"2000gb_monthly_v4",
+		"50gb_yearly_v4",
+		"200gb_yearly_v4",
+		"1000gb_yearly_v4",
+		"2000gb_yearly_v4",
 	}
 }
 

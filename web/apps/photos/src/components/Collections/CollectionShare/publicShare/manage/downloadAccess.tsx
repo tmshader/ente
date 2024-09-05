@@ -32,9 +32,9 @@ export function ManageDownloadAccess({
         appContext.setDialogMessage({
             title: t("DISABLE_FILE_DOWNLOAD"),
             content: <Trans i18nKey={"DISABLE_FILE_DOWNLOAD_MESSAGE"} />,
-            close: { text: t("CANCEL") },
+            close: { text: t("cancel") },
             proceed: {
-                text: t("DISABLE"),
+                text: t("disable"),
                 action: () =>
                     updatePublicShareURLHelper({
                         collectionID: collection.id,

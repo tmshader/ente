@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import "package:flutter_image_compress/flutter_image_compress.dart";
 import 'package:logging/logging.dart';
 import 'package:photo_view/photo_view.dart';
@@ -10,12 +9,10 @@ import 'package:photos/core/cache/thumbnail_in_memory_cache.dart';
 import 'package:photos/core/constants.dart';
 import 'package:photos/core/event_bus.dart';
 import 'package:photos/db/files_db.dart';
-import 'package:photos/events/files_updated_event.dart';
+import "package:photos/events/files_updated_event.dart";
 import 'package:photos/events/local_photos_updated_event.dart';
 import "package:photos/models/file/extensions/file_props.dart";
 import 'package:photos/models/file/file.dart';
-import "package:photos/models/metadata/file_magic.dart";
-import "package:photos/services/file_magic_service.dart";
 import "package:photos/ui/actions/file/file_actions.dart";
 import 'package:photos/ui/common/loading_widget.dart';
 import 'package:photos/utils/file_util.dart';
@@ -28,15 +25,17 @@ class ZoomableImage extends StatefulWidget {
   final String? tagPrefix;
   final Decoration? backgroundDecoration;
   final bool shouldCover;
+  final bool isGuestView;
 
   const ZoomableImage(
     this.photo, {
-    Key? key,
+    super.key,
     this.shouldDisableScroll,
     required this.tagPrefix,
     this.backgroundDecoration,
     this.shouldCover = false,
-  }) : super(key: key);
+    this.isGuestView = false,
+  });
 
   @override
   State<ZoomableImage> createState() => _ZoomableImageState();
@@ -150,21 +149,22 @@ class _ZoomableImageState extends State<ZoomableImage> {
       );
     }
 
-    final GestureDragUpdateCallback? verticalDragCallback = _isZooming
-        ? null
-        : (d) => {
-              if (!_isZooming)
-                {
-                  if (d.delta.dy > dragSensitivity)
+    final GestureDragUpdateCallback? verticalDragCallback =
+        _isZooming || widget.isGuestView
+            ? null
+            : (d) => {
+                  if (!_isZooming)
                     {
-                      {Navigator.of(context).pop()},
-                    }
-                  else if (d.delta.dy < (dragSensitivity * -1))
-                    {
-                      showDetailsSheet(context, widget.photo),
+                      if (d.delta.dy > dragSensitivity)
+                        {
+                          {Navigator.of(context).pop()},
+                        }
+                      else if (d.delta.dy < (dragSensitivity * -1))
+                        {
+                          showDetailsSheet(context, widget.photo),
+                        },
                     },
-                },
-            };
+                };
     return GestureDetector(
       onVerticalDragUpdate: verticalDragCallback,
       child: content,
@@ -347,29 +347,6 @@ class _ZoomableImageState extends State<ZoomableImage> {
     // forcefully get finalImageInfo is dimensions are not available in metadata
     if (finalImageInfo == null && canUpdateMetadata && !_photo.hasDimensions) {
       finalImageInfo = await getImageInfo(finalImageProvider);
-    }
-    if (finalImageInfo != null && canUpdateMetadata) {
-      _updateAspectRatioIfNeeded(_photo, finalImageInfo).ignore();
-    }
-  }
-
-  // Fallback logic to finish back fill and update aspect
-  // ratio if needed.
-  Future<void> _updateAspectRatioIfNeeded(
-    EnteFile enteFile,
-    ImageInfo imageInfo,
-  ) async {
-    final int h = imageInfo.image.height, w = imageInfo.image.width;
-    if (h != enteFile.height || w != enteFile.width) {
-      final logMessage =
-          'Updating aspect ratio for from ${enteFile.height}x${enteFile.width} to ${h}x$w';
-      _logger.info(logMessage);
-      await FileMagicService.instance.updatePublicMagicMetadata([
-        enteFile,
-      ], {
-        heightKey: h,
-        widthKey: w,
-      });
     }
   }
 

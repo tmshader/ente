@@ -47,16 +47,16 @@ func ConfigureViper(environment string) error {
 		return err
 	}
 
-	err = mergeConfigFileIfExists("museum.yaml")
-	if err != nil {
-		return err
-	}
-
 	credentialsFile := viper.GetString("credentials-file")
 	if credentialsFile == "" {
 		credentialsFile = "credentials.yaml"
 	}
 	err = mergeConfigFileIfExists(credentialsFile)
+	if err != nil {
+		return err
+	}
+
+	err = mergeConfigFileIfExists("museum.yaml")
 	if err != nil {
 		return err
 	}
@@ -103,13 +103,14 @@ func doesFileExist(path string) (bool, error) {
 
 func GetPGInfo() string {
 	return fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=%s",
+		"password=%s dbname=%s sslmode=%s %s",
 		viper.GetString("db.host"),
 		viper.GetInt("db.port"),
 		viper.GetString("db.user"),
 		viper.GetString("db.password"),
 		viper.GetString("db.name"),
-		viper.GetString("db.sslmode"))
+		viper.GetString("db.sslmode"),
+		viper.GetString("db.extra"))
 }
 
 func IsLocalEnvironment() bool {

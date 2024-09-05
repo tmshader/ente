@@ -1,6 +1,6 @@
+import { ensureElectron } from "@/base/electron";
+import { AppUpdate } from "@/base/types/ipc";
 import { openURL } from "@/new/photos/utils/web";
-import { ensureElectron } from "@/next/electron";
-import { AppUpdate } from "@/next/types/ipc";
 import { DialogBoxAttributes } from "@ente/shared/components/DialogBox/types";
 import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import InfoOutlined from "@mui/icons-material/InfoRounded";
@@ -37,7 +37,7 @@ export const getTrashFilesMessage = (
         text: t("MOVE_TO_TRASH"),
         variant: "critical",
     },
-    close: { text: t("CANCEL") },
+    close: { text: t("cancel") },
 });
 
 export const getTrashFileMessage = (deleteFileHelper): DialogBoxAttributes => ({
@@ -48,7 +48,7 @@ export const getTrashFileMessage = (deleteFileHelper): DialogBoxAttributes => ({
         text: t("MOVE_TO_TRASH"),
         variant: "critical",
     },
-    close: { text: t("CANCEL") },
+    close: { text: t("cancel") },
 });
 
 export const getUpdateReadyToInstallMessage = ({
@@ -145,6 +145,7 @@ export const getMapEnableConfirmationDialog = (
                 a: (
                     <Link
                         target="_blank"
+                        rel="noopener"
                         href="https://www.openstreetmap.org/"
                     />
                 ),
@@ -153,10 +154,10 @@ export const getMapEnableConfirmationDialog = (
     ),
     proceed: {
         action: enableMapHelper,
-        text: t("ENABLE"),
+        text: t("enable"),
         variant: "accent",
     },
-    close: { text: t("CANCEL") },
+    close: { text: t("cancel") },
 });
 
 export const getMapDisableConfirmationDialog = (
@@ -166,10 +167,10 @@ export const getMapDisableConfirmationDialog = (
     content: <Trans i18nKey={"DISABLE_MAP_DESCRIPTION"} />,
     proceed: {
         action: disableMapHelper,
-        text: t("DISABLE"),
+        text: t("disable"),
         variant: "accent",
     },
-    close: { text: t("CANCEL") },
+    close: { text: t("cancel") },
 });
 
 export const getEditorCloseConfirmationMessage = (
@@ -182,5 +183,5 @@ export const getEditorCloseConfirmationMessage = (
         text: t("CLOSE"),
         variant: "critical",
     },
-    close: { text: t("CANCEL") },
+    close: { text: t("cancel") },
 });

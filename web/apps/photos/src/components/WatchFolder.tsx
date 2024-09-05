@@ -1,6 +1,7 @@
-import { ensureElectron } from "@/next/electron";
-import { basename, dirname } from "@/next/file";
-import type { CollectionMapping, FolderWatch } from "@/next/types/ipc";
+import { EllipsizedTypography } from "@/base/components/Typography";
+import { ensureElectron } from "@/base/electron";
+import { basename, dirname } from "@/base/file";
+import type { CollectionMapping, FolderWatch } from "@/base/types/ipc";
 import { ensure } from "@/utils/ensure";
 import {
     FlexWrapper,
@@ -117,6 +118,7 @@ export const WatchFolder: React.FC<WatchFolderProps> = ({ open, onClose }) => {
             <Dialog
                 open={open}
                 onClose={onClose}
+                fullWidth
                 PaperProps={{ sx: { height: "448px", maxWidth: "414px" } }}
             >
                 <Title_>
@@ -242,7 +244,7 @@ const WatchEntry: React.FC<WatchEntryProps> = ({ watch, removeWatch }) => {
             title: t("STOP_WATCHING_FOLDER"),
             content: t("STOP_WATCHING_DIALOG_MESSAGE"),
             close: {
-                text: t("CANCEL"),
+                text: t("cancel"),
                 variant: "secondary",
             },
             proceed: {
@@ -255,7 +257,11 @@ const WatchEntry: React.FC<WatchEntryProps> = ({ watch, removeWatch }) => {
 
     return (
         <SpaceBetweenFlex>
-            <HorizontalFlex>
+            <HorizontalFlex
+                sx={{
+                    overflow: "hidden",
+                }}
+            >
                 {watch.collectionMapping === "root" ? (
                     <Tooltip title={t("UPLOADED_TO_SINGLE_COLLECTION")}>
                         <FolderOpenIcon />
@@ -267,9 +273,7 @@ const WatchEntry: React.FC<WatchEntryProps> = ({ watch, removeWatch }) => {
                 )}
                 <EntryContainer>
                     <EntryHeading watch={watch} />
-                    <Typography color="text.muted" variant="small">
-                        {watch.folderPath}
-                    </Typography>
+                    <FolderPath>{watch.folderPath}</FolderPath>
                 </EntryContainer>
             </HorizontalFlex>
             <EntryOptions {...{ confirmStopWatching }} />
@@ -278,6 +282,7 @@ const WatchEntry: React.FC<WatchEntryProps> = ({ watch, removeWatch }) => {
 };
 
 const EntryContainer = styled(Box)({
+    overflow: "hidden",
     marginLeft: "12px",
     marginRight: "6px",
     marginBottom: "12px",
@@ -299,6 +304,12 @@ const EntryHeading: React.FC<EntryHeadingProps> = ({ watch }) => {
         </FlexWrapper>
     );
 };
+
+const FolderPath: React.FC<React.PropsWithChildren> = ({ children }) => (
+    <EllipsizedTypography variant="small" color="text.muted">
+        {children}
+    </EllipsizedTypography>
+);
 
 interface EntryOptionsProps {
     confirmStopWatching: () => void;

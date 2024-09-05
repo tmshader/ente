@@ -20,10 +20,11 @@
   "@sessionExpired": {
     "description": "Title of the dialog when the users current session is invalid/expired"
   },
-  "pleaseLoginAgain": "Vänligen logga in igen",
+  "pleaseLoginAgain": "Logga in igen",
   "loggingOut": "Loggar ut...",
   "saveAction": "Spara",
   "nextTotpTitle": "nästa",
+  "deleteCodeTitle": "Radera kod?",
   "deleteCodeMessage": "Vill du ta bort den här koden? Det går inte att ångra den här åtgärden.",
   "viewLogsAction": "Visa loggar",
   "emailLogsTitle": "E-posta loggar",
@@ -62,6 +63,8 @@
   "changePassword": "Ändra lösenord",
   "importCodes": "Importera koder",
   "exportCodes": "Exportera koder",
+  "importLabel": "Importera",
+  "ok": "OK",
   "cancel": "Avbryt",
   "yes": "Ja",
   "no": "Nej",
@@ -91,6 +94,7 @@
   "moderateStrength": "Måttligt",
   "confirmPassword": "Bekräfta lösenord",
   "close": "Stäng",
+  "selectLanguage": "Välj språk",
   "language": "Språk",
   "searchHint": "Sök...",
   "search": "Sök",
@@ -107,8 +111,21 @@
   "recoveryKeyOnForgotPassword": "Om du glömmer ditt lösenord är det enda sättet du kan återställa dina data med denna nyckel.",
   "saveKey": "Spara nyckel",
   "save": "Spara",
+  "send": "Skicka",
   "back": "Tillbaka",
   "createAccount": "Skapa konto",
+  "passwordStrength": "Lösenordsstyrka: {passwordStrengthValue}",
+  "@passwordStrength": {
+    "description": "Text to indicate the password strength",
+    "placeholders": {
+      "passwordStrengthValue": {
+        "description": "The strength of the password as a string",
+        "type": "String",
+        "example": "Weak or Moderate or Strong"
+      }
+    },
+    "message": "Password Strength: {passwordStrengthText}"
+  },
   "password": "Lösenord",
   "privacyPolicyTitle": "Integritetspolicy",
   "termsOfServicesTitle": "Villkor",
@@ -149,7 +166,9 @@
   "incorrectRecoveryKey": "Felaktig återställningsnyckel",
   "enterPassword": "Ange lösenord",
   "export": "Exportera",
+  "signInToBackup": "Logga in för att säkerhetskopiera dina koder",
   "singIn": "Logga in",
+  "shouldHideCode": "Dölj koder",
   "androidCancelButton": "Avbryt",
   "@androidCancelButton": {
     "description": "Message showed on a button that the user can click to leave the current dialog. It is used on Android side. Maximum 30 characters."
@@ -160,5 +179,20 @@
   },
   "noInternetConnection": "Ingen internetanslutning",
   "pleaseCheckYourInternetConnectionAndTryAgain": "Kontrollera din internetanslutning och försök igen.",
-  "loginSessionExpiredDetails": "Din session har upphört. Logga in igen."
+  "signOutOtherDevices": "Logga ut andra enheter",
+  "loginSessionExpiredDetails": "Din session har upphört. Logga in igen.",
+  "create": "Skapa",
+  "editTag": "Redigera tagg",
+  "deleteTagTitle": "Radera tagg?",
+  "immediately": "Omedelbart",
+  "reEnterPassword": "Ange lösenord igen",
+  "reEnterPin": "Ange PIN-kod igen",
+  "next": "Nästa",
+  "tooManyIncorrectAttempts": "För många felaktiga försök",
+  "tapToUnlock": "Tryck för att låsa upp",
+  "setNewPassword": "Ange nytt lösenord",
+  "deviceLock": "Enhetslås",
+  "hideContent": "Dölj innehåll",
+  "enterPin": "Ange PIN-kod",
+  "setNewPin": "Ange ny PIN-kod"
 }

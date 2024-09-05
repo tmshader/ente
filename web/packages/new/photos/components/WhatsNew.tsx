@@ -1,5 +1,6 @@
-import { ensureElectron } from "@/next/electron";
-import { ut } from "@/next/i18n";
+import { ensureElectron } from "@/base/electron";
+import { useIsMobileWidth } from "@/base/hooks";
+import { ut } from "@/base/i18n";
 import ArrowForward from "@mui/icons-material/ArrowForward";
 import {
     Box,
@@ -10,7 +11,6 @@ import {
     DialogTitle,
     Typography,
     styled,
-    useMediaQuery,
 } from "@mui/material";
 import React, { useEffect } from "react";
 import { didShowWhatsNew } from "../services/changelog";
@@ -29,7 +29,7 @@ interface WhatsNewProps {
  * last time this dialog was shown.
  */
 export const WhatsNew: React.FC<WhatsNewProps> = ({ open, onClose }) => {
-    const fullScreen = useMediaQuery("(max-width: 428px)");
+    const fullScreen = useIsMobileWidth();
 
     useEffect(() => {
         if (open) void didShowWhatsNew(ensureElectron());
@@ -40,6 +40,7 @@ export const WhatsNew: React.FC<WhatsNewProps> = ({ open, onClose }) => {
             {...{ open, fullScreen }}
             TransitionComponent={SlideTransition}
             maxWidth="xs"
+            fullWidth
         >
             <Box m={1}>
                 <DialogTitle mt={2}>
@@ -75,20 +76,23 @@ const ChangelogContent: React.FC = () => {
     return (
         <StyledUL>
             <li>
+                <Typography color="primary">
+                    {ut("Improved date search")}
+                </Typography>
                 <Typography>
-                    <Typography color="primary">
-                        {ut("Support for Passkeys")}
-                    </Typography>
-                    {ut(
-                        "Passkeys can now be used as a second factor authentication mechanism.",
-                    )}
+                    Search for photos by day of week (<i>Wednesday</i>) or hour
+                    of day (<i>8 pm</i>) in addition to the existing search by
+                    partial dates (<i>20 July</i>, or even <i>2021</i>) and
+                    relative dates (<i>Last month</i>,<i>Yesterday</i>).
                 </Typography>
             </li>
             <li>
-                <Typography color="primary">{ut("Window size")}</Typography>
+                <Typography color="primary">
+                    {ut("Faster magic search")}
+                </Typography>
                 <Typography>
                     {ut(
-                        "The app's window will remember its size and position.",
+                        "The magic search beta, where you can search for photos just by typing whatever is in them, just got faster.",
                     )}
                 </Typography>
             </li>

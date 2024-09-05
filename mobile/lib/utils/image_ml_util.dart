@@ -1,13 +1,16 @@
 import "dart:async";
 import "dart:developer" show log;
-import "dart:math" show min;
+import "dart:io" show File, Platform;
+import "dart:math" show max, min;
 import "dart:typed_data" show Float32List, Uint8List, ByteData;
 import "dart:ui";
 
 import 'package:flutter/painting.dart' as paint show decodeImageFromList;
+import "package:heif_converter/heif_converter.dart";
+import "package:logging/logging.dart";
 import 'package:ml_linalg/linalg.dart';
-import "package:photos/face/model/box.dart";
-import "package:photos/face/model/dimension.dart";
+import "package:photos/models/ml/face/box.dart";
+import "package:photos/models/ml/face/dimension.dart";
 import 'package:photos/services/machine_learning/face_ml/face_alignment/alignment_result.dart';
 import 'package:photos/services/machine_learning/face_ml/face_alignment/similarity_transform.dart';
 import 'package:photos/services/machine_learning/face_ml/face_detection/detection.dart';
@@ -15,6 +18,40 @@ import 'package:photos/services/machine_learning/face_ml/face_filtering/blur_det
 
 /// All of the functions in this file are helper functions for using inside an isolate.
 /// Don't use them outside of a isolate, unless you are okay with UI jank!!!!
+
+final _logger = Logger("ImageMlUtil");
+
+Future<(Image, ByteData)> decodeImageFromPath(String imagePath) async {
+  try {
+    final imageData = await File(imagePath).readAsBytes();
+    final image = await decodeImageFromData(imageData);
+    final ByteData imageByteData = await getByteDataFromImage(image);
+    return (image, imageByteData);
+  } catch (e, s) {
+    final format = imagePath.split('.').last;
+    if (Platform.isAndroid) {
+      _logger.info('Cannot decode $format, converting to JPG on Android');
+      final String? jpgPath =
+          await HeifConverter.convert(imagePath, format: 'jpg');
+      if (jpgPath != null) {
+        _logger.info('Conversion successful, decoding JPG');
+        final imageData = await File(jpgPath).readAsBytes();
+        final image = await decodeImageFromData(imageData);
+        final ByteData imageByteData = await getByteDataFromImage(image);
+        return (image, imageByteData);
+      }
+      _logger.info('Unable to convert $format to JPG');
+    }
+    _logger.severe(
+      'Error decoding image of format $format (Android: ${Platform.isAndroid})',
+      e,
+      s,
+    );
+    throw Exception(
+      'InvalidImageFormatException: Error decoding image of format $format',
+    );
+  }
+}
 
 /// Decodes [Uint8List] image data to an ui.[Image] object.
 Future<Image> decodeImageFromData(Uint8List imageData) async {
@@ -69,10 +106,9 @@ Future<List<Uint8List>> generateFaceThumbnailsUsingCanvas(
   Uint8List imageData,
   List<FaceBox> faceBoxes,
 ) async {
-  final Image img = await decodeImageFromData(imageData);
-  int i = 0;
-
+  int i = 0; // Index of the faceBox, initialized here for logging purposes
   try {
+    final Image img = await decodeImageFromData(imageData);
     final futureFaceThumbnails = <Future<Uint8List>>[];
     for (final faceBox in faceBoxes) {
       // Note that the faceBox values are relative to the image size, so we need to convert them to absolute values first
@@ -113,15 +149,17 @@ Future<List<Uint8List>> generateFaceThumbnailsUsingCanvas(
     final List<Uint8List> faceThumbnails =
         await Future.wait(futureFaceThumbnails);
     return faceThumbnails;
-  } catch (e) {
-    log('[ImageMlUtils] Error generating face thumbnails: $e');
-    log('[ImageMlUtils] cropImage problematic input argument: ${faceBoxes[i]}');
+  } catch (e, s) {
+    _logger.severe(
+      'Error generating face thumbnails. cropImage problematic input argument: ${faceBoxes[i]}',
+      e,
+      s,
+    );
     return [];
   }
 }
 
-Future<(Float32List, Dimensions, Dimensions)>
-    preprocessImageToFloat32ChannelsFirst(
+Future<(Float32List, Dimensions)> preprocessImageToFloat32ChannelsFirst(
   Image image,
   ByteData imgByteData, {
   required int normalization,
@@ -135,19 +173,6 @@ Future<(Float32List, Dimensions, Dimensions)>
       : normalization == 1
           ? _normalizePixelRange1
           : _normalizePixelNoRange;
-  final originalSize = Dimensions(width: image.width, height: image.height);
-
-  if (image.width == requiredWidth && image.height == requiredHeight) {
-    return (
-      _createFloat32ListFromImageChannelsFirst(
-        image,
-        imgByteData,
-        normFunction: normFunction,
-      ),
-      originalSize,
-      originalSize
-    );
-  }
 
   double scaleW = requiredWidth / image.width;
   double scaleH = requiredHeight / image.height;
@@ -186,11 +211,43 @@ Future<(Float32List, Dimensions, Dimensions)>
     }
   }
 
-  return (
-    processedBytes,
-    originalSize,
-    Dimensions(width: scaledWidth, height: scaledHeight)
-  );
+  return (processedBytes, Dimensions(width: scaledWidth, height: scaledHeight));
+}
+
+Future<Float32List> preprocessImageClip(
+  Image image,
+  ByteData imgByteData,
+) async {
+  const int requiredWidth = 256;
+  const int requiredHeight = 256;
+  const int requiredSize = 3 * requiredWidth * requiredHeight;
+  final scale = max(requiredWidth / image.width, requiredHeight / image.height);
+  final scaledWidth = (image.width * scale).round();
+  final scaledHeight = (image.height * scale).round();
+  final widthOffset = max(0, scaledWidth - requiredWidth) / 2;
+  final heightOffset = max(0, scaledHeight - requiredHeight) / 2;
+
+  final processedBytes = Float32List(requiredSize);
+  final buffer = Float32List.view(processedBytes.buffer);
+  int pixelIndex = 0;
+  const int greenOff = requiredHeight * requiredWidth;
+  const int blueOff = 2 * requiredHeight * requiredWidth;
+  for (var h = 0 + heightOffset; h < scaledHeight - heightOffset; h++) {
+    for (var w = 0 + widthOffset; w < scaledWidth - widthOffset; w++) {
+      final Color pixel = _getPixelBilinear(
+        w / scale,
+        h / scale,
+        image,
+        imgByteData,
+      );
+      buffer[pixelIndex] = pixel.red / 255;
+      buffer[pixelIndex + greenOff] = pixel.green / 255;
+      buffer[pixelIndex + blueOff] = pixel.blue / 255;
+      pixelIndex++;
+    }
+  }
+
+  return processedBytes;
 }
 
 Future<(Float32List, List<AlignmentResult>, List<bool>, List<double>, Size)>
@@ -201,8 +258,6 @@ Future<(Float32List, List<AlignmentResult>, List<bool>, List<double>, Size)>
   int width = 112,
   int height = 112,
 }) async {
-  final stopwatch = Stopwatch()..start();
-
   final Size originalSize =
       Size(image.width.toDouble(), image.height.toDouble());
 
@@ -224,8 +279,12 @@ Future<(Float32List, List<AlignmentResult>, List<bool>, List<double>, Size)>
     final (alignmentResult, correctlyEstimated) =
         SimilarityTransform.estimate(face.allKeypoints);
     if (!correctlyEstimated) {
-      log('Face alignment failed because not able to estimate SimilarityTransform, for face: $face');
-      throw Exception('Face alignment failed because not able to estimate SimilarityTransform');
+      _logger.severe(
+        'Face alignment failed because not able to estimate SimilarityTransform, for face: $face',
+      );
+      throw Exception(
+        'Face alignment failed because not able to estimate SimilarityTransform',
+      );
     }
     alignmentResults.add(alignmentResult);
 
@@ -237,31 +296,20 @@ Future<(Float32List, List<AlignmentResult>, List<bool>, List<double>, Size)>
       alignedImageIndex,
     );
 
-    final blurDetectionStopwatch = Stopwatch()..start();
     final faceGrayMatrix = _createGrayscaleIntMatrixFromNormalized2List(
       alignedImagesFloat32List,
       alignedImageIndex,
     );
 
     alignedImageIndex += 3 * width * height;
-    final grayscalems = blurDetectionStopwatch.elapsedMilliseconds;
-    log('creating grayscale matrix took $grayscalems ms');
     final (isBlur, blurValue) =
         await BlurDetectionService.predictIsBlurGrayLaplacian(
       faceGrayMatrix,
       faceDirection: face.getFaceDirection(),
     );
-    final blurms = blurDetectionStopwatch.elapsedMilliseconds - grayscalems;
-    log('blur detection took $blurms ms');
-    log(
-      'total blur detection took ${blurDetectionStopwatch.elapsedMilliseconds} ms',
-    );
-    blurDetectionStopwatch.stop();
     isBlurs.add(isBlur);
     blurValues.add(blurValue);
   }
-  stopwatch.stop();
-  log("Face Alignment took: ${stopwatch.elapsedMilliseconds} ms");
   return (
     alignedImagesFloat32List,
     alignmentResults,

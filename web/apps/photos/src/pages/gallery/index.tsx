@@ -1,3 +1,4 @@
+import log from "@/base/log";
 import { WhatsNew } from "@/new/photos/components/WhatsNew";
 import { shouldShowWhatsNew } from "@/new/photos/services/changelog";
 import downloadManager from "@/new/photos/services/download";
@@ -5,9 +6,9 @@ import {
     getLocalFiles,
     getLocalTrashedFiles,
 } from "@/new/photos/services/files";
+import { wipHasSwitchedOnceCmpAndSet } from "@/new/photos/services/ml";
 import { EnteFile } from "@/new/photos/types/file";
 import { mergeMetadata } from "@/new/photos/utils/file";
-import log from "@/next/log";
 import { CenteredFlex } from "@ente/shared/components/Container";
 import EnteSpinner from "@ente/shared/components/EnteSpinner";
 import { PHOTOS_PAGES as PAGES } from "@ente/shared/constants/pages";
@@ -94,7 +95,7 @@ import {
 } from "services/collectionService";
 import { syncFiles } from "services/fileService";
 import locationSearchService from "services/locationSearchService";
-import { sync } from "services/sync";
+import { sync, triggerPreFileInfoSync } from "services/sync";
 import { syncTrash } from "services/trashService";
 import uploadManager from "services/upload/uploadManager";
 import { isTokenValid } from "services/userService";
@@ -119,7 +120,6 @@ import {
     splitNormalAndHiddenCollections,
 } from "utils/collection";
 import ComlinkSearchWorker from "utils/comlink/ComlinkSearchWorker";
-import { preloadImage } from "utils/common";
 import {
     FILE_OPS_TYPE,
     constructFileToCollectionMap,
@@ -341,7 +341,7 @@ export default function Gallery() {
         const token = getToken();
         if (!key || !token) {
             InMemoryStore.set(MS_KEYS.REDIRECT_URL, PAGES.GALLERY);
-            router.push(PAGES.ROOT);
+            router.push("/");
             return;
         }
         preloadImage("/images/subscription-card-background");
@@ -670,6 +670,16 @@ export default function Gallery() {
         };
     }, [selectAll, clearSelection]);
 
+    useEffect(() => {
+        // TODO-Cluster
+        if (process.env.NEXT_PUBLIC_ENTE_WIP_CL_AUTO) {
+            setTimeout(() => {
+                if (!wipHasSwitchedOnceCmpAndSet())
+                    router.push("cluster-debug");
+            }, 2000);
+        }
+    }, []);
+
     const fileToCollectionsMap = useMemoSingleThreaded(() => {
         return constructFileToCollectionMap(files);
     }, [files]);
@@ -705,6 +715,7 @@ export default function Gallery() {
                 throw new Error(CustomError.SESSION_EXPIRED);
             }
             !silent && startLoading();
+            triggerPreFileInfoSync();
             const collections = await getAllLatestCollections();
             const { normalCollections, hiddenCollections } =
                 await splitNormalAndHiddenCollections(collections);
@@ -1066,7 +1077,6 @@ export default function Gallery() {
                 <FixCreationTime
                     isOpen={fixCreationTimeView}
                     hide={() => setFixCreationTimeView(false)}
-                    show={() => setFixCreationTimeView(true)}
                     attributes={fixCreationTimeAttributes}
                 />
                 <GalleryNavbar
@@ -1263,6 +1273,15 @@ function useEffectSingleThreaded(
         main(deps);
     }, deps);
 }
+
+/**
+ * Preload all three variants of a responsive image.
+ */
+const preloadImage = (imgBasePath: string) => {
+    const srcset = [];
+    for (let i = 1; i <= 3; i++) srcset.push(`${imgBasePath}/${i}x.png ${i}x`);
+    new Image().srcset = srcset.join(",");
+};
 
 const mergeMaps = <K, V>(map1: Map<K, V>, map2: Map<K, V>) => {
     const mergedMap = new Map<K, V>(map1);

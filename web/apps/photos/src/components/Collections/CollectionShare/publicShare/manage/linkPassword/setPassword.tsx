@@ -1,7 +1,7 @@
+import { sharedCryptoWorker } from "@/base/crypto";
 import SingleInputForm, {
     type SingleInputFormProps,
 } from "@ente/shared/components/SingleInputForm";
-import ComlinkCryptoWorker from "@ente/shared/crypto";
 import { Dialog, Stack, Typography } from "@mui/material";
 import { t } from "i18next";
 
@@ -27,7 +27,7 @@ export function PublicLinkSetPassword({
     };
 
     const enablePublicUrlPassword = async (password: string) => {
-        const cryptoWorker = await ComlinkCryptoWorker.getInstance();
+        const cryptoWorker = await sharedCryptoWorker();
         const kekSalt = await cryptoWorker.generateSaltToDeriveKey();
         const kek = await cryptoWorker.deriveInteractiveKey(password, kekSalt);
 
@@ -47,6 +47,8 @@ export function PublicLinkSetPassword({
             BackdropProps={{ sx: { position: "absolute" } }}
             sx={{ position: "absolute" }}
             PaperProps={{ sx: { p: 1 } }}
+            maxWidth={"sm"}
+            fullWidth
         >
             <Stack spacing={3} p={1.5}>
                 <Typography variant="h3" px={1} py={0.5} fontWeight={"bold"}>

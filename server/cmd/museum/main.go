@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	b64 "encoding/base64"
 	"fmt"
+	"github.com/ente-io/museum/ente/base"
 	"github.com/ente-io/museum/pkg/controller/file_copy"
+	"github.com/ente-io/museum/pkg/controller/filedata"
 	"net/http"
 	"os"
 	"os/signal"
@@ -49,6 +51,7 @@ import (
 	castRepo "github.com/ente-io/museum/pkg/repo/cast"
 	"github.com/ente-io/museum/pkg/repo/datacleanup"
 	"github.com/ente-io/museum/pkg/repo/embedding"
+	fileDataRepo "github.com/ente-io/museum/pkg/repo/filedata"
 	"github.com/ente-io/museum/pkg/repo/kex"
 	"github.com/ente-io/museum/pkg/repo/passkey"
 	"github.com/ente-io/museum/pkg/repo/remotestore"
@@ -134,7 +137,6 @@ func main() {
 	}, []string{"method"})
 
 	s3Config := s3config.NewS3Config()
-
 	passkeysRepo, err := passkey.NewRepository(db)
 	if err != nil {
 		panic(err)
@@ -162,6 +164,7 @@ func main() {
 	fileRepo := &repo.FileRepository{DB: db, S3Config: s3Config, QueueRepo: queueRepo,
 		ObjectRepo: objectRepo, ObjectCleanupRepo: objectCleanupRepo,
 		ObjectCopiesRepo: objectCopiesRepo, UsageRepo: usageRepo}
+	fileDataRepo := &fileDataRepo.Repository{DB: db}
 	familyRepo := &repo.FamilyRepository{DB: db}
 	trashRepo := &repo.TrashRepository{DB: db, ObjectRepo: objectRepo, FileRepo: fileRepo, QueueRepo: queueRepo}
 	publicCollectionRepo := repo.NewPublicCollectionRepository(db, viper.GetString("apps.public-albums"))
@@ -186,7 +189,9 @@ func main() {
 	}
 
 	userCache := cache2.NewUserCache()
-	userCacheCtrl := &usercache.Controller{UserCache: userCache, FileRepo: fileRepo, StoreBonusRepo: storagBonusRepo}
+	userCacheCtrl := &usercache.Controller{UserCache: userCache, FileRepo: fileRepo,
+		UsageRepo: usageRepo, TrashRepo: trashRepo,
+		StoreBonusRepo: storagBonusRepo}
 	offerController := offer.NewOfferController(*userRepo, discordController, storagBonusRepo, userCacheCtrl)
 	plans := billing.GetPlans()
 	defaultPlan := billing.GetDefaultPlans(plans)
@@ -238,6 +243,9 @@ func main() {
 		FileRepo:         fileRepo,
 	}
 
+	accessCtrl := access.NewAccessController(collectionRepo, fileRepo)
+	fileDataCtrl := filedata.New(fileDataRepo, accessCtrl, objectCleanupController, s3Config, fileRepo, collectionRepo)
+
 	fileController := &controller.FileController{
 		FileRepo:              fileRepo,
 		ObjectRepo:            objectRepo,
@@ -286,8 +294,6 @@ func main() {
 		UserRepo:              userRepo,
 		JwtSecret:             jwtSecretBytes,
 	}
-
-	accessCtrl := access.NewAccessController(collectionRepo, fileRepo)
 
 	collectionController := &controller.CollectionController{
 		CollectionRepo:       collectionRepo,
@@ -353,10 +359,17 @@ func main() {
 
 	p := ginprometheus.NewPrometheus("museum")
 	p.ReqCntURLLabelMappingFn = urlSanitizer
-	p.Use(server)
+	server.Use(p.HandlerFunc())
 
 	// note: the recover middleware must be in the last
-	server.Use(requestid.New(), middleware.Logger(urlSanitizer), cors(), gzip.Gzip(gzip.DefaultCompression), middleware.PanicRecover())
+
+	server.Use(requestid.New(
+		requestid.Config{
+			Generator: func() string {
+				return base.ServerReqID()
+			},
+		}),
+		middleware.Logger(urlSanitizer), cors(), gzip.Gzip(gzip.DefaultCompression), middleware.PanicRecover())
 
 	publicAPI := server.Group("/")
 	publicAPI.Use(rateLimiter.GlobalRateLimiter(), rateLimiter.APIRateLimitMiddleware(urlSanitizer))
@@ -401,6 +414,7 @@ func main() {
 	fileHandler := &api.FileHandler{
 		Controller:   fileController,
 		FileCopyCtrl: fileCopyCtrl,
+		FileDataCtrl: fileDataCtrl,
 	}
 	privateAPI.GET("/files/upload-urls", fileHandler.GetUploadURLs)
 	privateAPI.GET("/files/multipart-upload-urls", fileHandler.GetMultipartUploadURLs)
@@ -408,6 +422,13 @@ func main() {
 	privateAPI.GET("/files/download/v2/:fileID", fileHandler.Get)
 	privateAPI.GET("/files/preview/:fileID", fileHandler.GetThumbnail)
 	privateAPI.GET("/files/preview/v2/:fileID", fileHandler.GetThumbnail)
+
+	privateAPI.PUT("/files/data", fileHandler.PutFileData)
+	privateAPI.POST("/files/data/fetch", fileHandler.GetFilesData)
+	privateAPI.GET("/files/data/fetch", fileHandler.GetFileData)
+	privateAPI.GET("/files/data/preview-upload-url", fileHandler.GetPreviewUploadURL)
+	privateAPI.GET("/files/data/preview", fileHandler.GetPreviewURL)
+
 	privateAPI.POST("/files", fileHandler.CreateOrUpdate)
 	privateAPI.POST("/files/copy", fileHandler.CopyFiles)
 	privateAPI.PUT("/files/update", fileHandler.Update)
@@ -472,7 +493,6 @@ func main() {
 	privateAPI.GET("/users/payment-token", userHandler.GetPaymentToken)
 	privateAPI.GET("/users/families-token", userHandler.GetFamiliesToken)
 	privateAPI.GET("/users/accounts-token", userHandler.GetAccountsToken)
-	privateAPI.GET("/users/details", userHandler.GetDetails)
 	privateAPI.GET("/users/details/v2", userHandler.GetDetailsV2)
 	privateAPI.POST("/users/change-email", userHandler.ChangeEmail)
 	privateAPI.GET("/users/sessions", userHandler.GetActiveSessions)
@@ -601,6 +621,7 @@ func main() {
 	}
 
 	privateAPI.GET("/storage-bonus/details", storageBonusHandler.GetStorageBonusDetails)
+	privateAPI.POST("/storage-bonus/change-code", storageBonusHandler.UpdateReferralCode)
 	privateAPI.GET("/storage-bonus/referral-view", storageBonusHandler.GetReferralView)
 	privateAPI.POST("/storage-bonus/referral-claim", storageBonusHandler.ClaimReferral)
 
@@ -621,6 +642,7 @@ func main() {
 		DiscordController:       discordController,
 		HashingKey:              hashingKeyBytes,
 		PasskeyController:       passkeyCtrl,
+		StorageBonusCtl:         storageBonusCtrl,
 	}
 	adminAPI.POST("/mail", adminHandler.SendMail)
 	adminAPI.POST("/mail/subscribe", adminHandler.SubscribeMail)
@@ -628,7 +650,10 @@ func main() {
 	adminAPI.GET("/users", adminHandler.GetUsers)
 	adminAPI.GET("/user", adminHandler.GetUser)
 	adminAPI.POST("/user/disable-2fa", adminHandler.DisableTwoFactor)
+	adminAPI.POST("/user/update-referral", adminHandler.UpdateReferral)
 	adminAPI.POST("/user/disable-passkeys", adminHandler.RemovePasskeys)
+	adminAPI.POST("/user/update-email-mfa", adminHandler.UpdateEmailMFA)
+	adminAPI.POST("/user/add-ott", adminHandler.AddOtt)
 	adminAPI.POST("/user/close-family", adminHandler.CloseFamily)
 	adminAPI.PUT("/user/change-email", adminHandler.ChangeEmail)
 	adminAPI.DELETE("/user/delete", adminHandler.DeleteUser)
@@ -638,7 +663,7 @@ func main() {
 	adminAPI.POST("/emails-from-hashes", adminHandler.GetEmailsFromHashes)
 	adminAPI.PUT("/user/subscription", adminHandler.UpdateSubscription)
 	adminAPI.POST("/queue/re-queue", adminHandler.ReQueueItem)
-	adminAPI.POST("/user/bf-2013", adminHandler.UpdateBFDeal)
+	adminAPI.POST("/user/bonus", adminHandler.UpdateBonus)
 	adminAPI.POST("/job/clear-orphan-objects", adminHandler.ClearOrphanObjects)
 
 	userEntityController := &userEntityCtrl.Controller{Repo: userEntityRepo}
@@ -684,6 +709,7 @@ func main() {
 
 	privateAPI.PUT("/embeddings", embeddingHandler.InsertOrUpdate)
 	privateAPI.GET("/embeddings/diff", embeddingHandler.GetDiff)
+	privateAPI.GET("/embeddings/indexed-files", embeddingHandler.GetIndexedFiles)
 	privateAPI.POST("/embeddings/files", embeddingHandler.GetFilesEmbedding)
 	privateAPI.DELETE("/embeddings", embeddingHandler.DeleteAll)
 
@@ -691,7 +717,7 @@ func main() {
 	publicAPI.GET("/offers/black-friday", offerHandler.GetBlackFridayOffers)
 
 	setKnownAPIs(server.Routes())
-	setupAndStartBackgroundJobs(objectCleanupController, replicationController3)
+	setupAndStartBackgroundJobs(objectCleanupController, replicationController3, fileDataCtrl)
 	setupAndStartCrons(
 		userAuthRepo, publicCollectionRepo, twoFactorRepo, passkeysRepo, fileController, taskLockingRepo, emailNotificationCtrl,
 		trashController, pushController, objectController, dataCleanupController, storageBonusCtrl,
@@ -801,6 +827,7 @@ func setupDatabase() *sql.DB {
 func setupAndStartBackgroundJobs(
 	objectCleanupController *controller.ObjectCleanupController,
 	replicationController3 *controller.ReplicationController3,
+	fileDataCtrl *filedata.Controller,
 ) {
 	isReplicationEnabled := viper.GetBool("replication.enabled")
 	if isReplicationEnabled {
@@ -808,10 +835,15 @@ func setupAndStartBackgroundJobs(
 		if err != nil {
 			log.Warnf("Could not start replication v3: %s", err)
 		}
+		err = fileDataCtrl.StartReplication()
+		if err != nil {
+			log.Warnf("Could not start fileData replication: %s", err)
+		}
 	} else {
 		log.Info("Skipping Replication as replication is disabled")
 	}
 
+	fileDataCtrl.StartDataDeletion() // Start data deletion for file data;
 	objectCleanupController.StartRemovingUnreportedObjects()
 	objectCleanupController.StartClearingOrphanObjects()
 }

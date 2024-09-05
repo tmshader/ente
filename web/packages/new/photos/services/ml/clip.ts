@@ -1,10 +1,9 @@
-import type { EnteFile } from "@/new/photos/types/file";
-import type { Electron } from "@/next/types/ipc";
+import type { ElectronMLWorker } from "@/base/types/ipc";
 import type { ImageBitmapAndData } from "./blob";
 import { clipIndexes } from "./db";
-import { pixelRGBBicubic } from "./image";
+import { pixelRGBBilinear } from "./image";
 import { dotProduct, norm } from "./math";
-import type { MLWorkerElectron } from "./worker-types";
+import type { CLIPMatches } from "./worker-types";
 
 /**
  * The version of the CLIP indexing pipeline implemented by the current client.
@@ -40,8 +39,9 @@ export const clipIndexingVersion = 1;
  * initial launch of this feature using the GGML runtime.
  *
  * Since the initial launch, we've switched over to another runtime,
- * [ONNX](https://onnxruntime.ai) and have made other implementation changes,
- * but the overall gist remains the same.
+ * [ONNX](https://onnxruntime.ai), started using Apple's
+ * [MobileCLIP](https://github.com/apple/ml-mobileclip/) as the model and have
+ * made other implementation changes, but the overall gist remains the same.
  *
  * Note that we don't train the neural network - we only use one of the publicly
  * available pre-trained neural networks for inference. These neural networks
@@ -59,14 +59,8 @@ export const clipIndexingVersion = 1;
  * itself, is the same across clients - web and mobile.
  */
 export interface CLIPIndex {
-    /** The ID of the {@link EnteFile} whose index this is. */
-    fileID: number;
-    /** An integral version number of the indexing algorithm / pipeline. */
-    version: number;
-    /** The UA for the client which generated this embedding. */
-    client: string;
     /**
-     * The CLIP embedding itself.
+     * The CLIP embedding.
      *
      * This is an array of 512 floating point values that represent the
      * embedding of the image in the same space where we'll embed the text so
@@ -74,6 +68,18 @@ export interface CLIPIndex {
      */
     embedding: number[];
 }
+
+export type RemoteCLIPIndex = CLIPIndex & {
+    /** An integral version number of the indexing algorithm / pipeline. */
+    version: number;
+    /** The UA for the client which generated this embedding. */
+    client: string;
+};
+
+export type LocalCLIPIndex = CLIPIndex & {
+    /** The ID of the {@link EnteFile} whose index this is. */
+    fileID: number;
+};
 
 /**
  * Compute the CLIP embedding of a given file.
@@ -89,51 +95,33 @@ export interface CLIPIndex {
  * that it can be saved locally and also uploaded to the user's remote storage
  * for use on their other devices).
  *
- * @param enteFile The {@link EnteFile} to index.
- *
  * @param uploadItem If we're called during the upload process, then this will
  * be set to the {@link UploadItem} that was uploaded. This way, we can directly
  * use the on-disk file instead of needing to download the original from remote.
  *
- * @param electron The {@link MLWorkerElectron} instance that allows us to call
- * our Node.js layer for various functionality.
- *
- * @param userAgent The UA of the client that is doing the indexing (us).
+ * @param electron The {@link ElectronMLWorker} instance that allows us to call
+ * our Node.js layer to run the ONNX inference.
  */
 export const indexCLIP = async (
-    enteFile: EnteFile,
     image: ImageBitmapAndData,
-    electron: MLWorkerElectron,
-    userAgent: string,
-): Promise<CLIPIndex> => {
-    const { data: imageData } = image;
-    const fileID = enteFile.id;
-
-    return {
-        fileID,
-        version: clipIndexingVersion,
-        client: userAgent,
-        embedding: await computeEmbedding(imageData, electron),
-    };
-};
+    electron: ElectronMLWorker,
+): Promise<CLIPIndex> => ({
+    embedding: Array.from(await computeEmbedding(image.data, electron)),
+});
 
 const computeEmbedding = async (
     imageData: ImageData,
-    electron: MLWorkerElectron,
-): Promise<number[]> => {
+    electron: ElectronMLWorker,
+): Promise<Float32Array> => {
     const clipInput = convertToCLIPInput(imageData);
     return normalized(await electron.computeCLIPImageEmbedding(clipInput));
 };
 
 /**
- * Convert {@link imageData} into the format that the CLIP model expects.
+ * Convert {@link imageData} into the format that the MobileCLIP model expects.
  */
 const convertToCLIPInput = (imageData: ImageData) => {
-    const requiredWidth = 224;
-    const requiredHeight = 224;
-
-    const mean = [0.48145466, 0.4578275, 0.40821073] as const;
-    const std = [0.26862954, 0.26130258, 0.27577711] as const;
+    const [requiredWidth, requiredHeight] = [256, 256];
 
     const { width, height, data: pixelData } = imageData;
 
@@ -153,16 +141,16 @@ const convertToCLIPInput = (imageData: ImageData) => {
     const cOffsetB = 2 * requiredHeight * requiredWidth; // ChannelOffsetBlue
     for (let h = 0 + heightOffset; h < scaledHeight - heightOffset; h++) {
         for (let w = 0 + widthOffset; w < scaledWidth - widthOffset; w++) {
-            const { r, g, b } = pixelRGBBicubic(
+            const { r, g, b } = pixelRGBBilinear(
                 w / scale,
                 h / scale,
                 pixelData,
                 width,
                 height,
             );
-            clipInput[pi] = (r / 255.0 - mean[0]) / std[0];
-            clipInput[pi + cOffsetG] = (g / 255.0 - mean[1]) / std[1];
-            clipInput[pi + cOffsetB] = (b / 255.0 - mean[2]) / std[2];
+            clipInput[pi] = r / 255.0;
+            clipInput[pi + cOffsetG] = g / 255.0;
+            clipInput[pi + cOffsetB] = b / 255.0;
             pi++;
         }
     }
@@ -170,44 +158,57 @@ const convertToCLIPInput = (imageData: ImageData) => {
 };
 
 const normalized = (embedding: Float32Array) => {
-    const nums = Array.from(embedding);
-    const n = norm(nums);
-    return nums.map((v) => v / n);
+    const n = norm(embedding);
+    return embedding.map((v) => v / n);
 };
 
 /**
- * Use CLIP to perform a natural language search over image embeddings.
- *
- * @param searchPhrase The text entered by the user in the search box.
- *
- * @param electron The {@link Electron} instance to use to communicate with the
- * native code running in our desktop app (the embedding happens in the native
- * layer).
- *
- * It return a list of files that should be shown in the search results. The
- * actual return type is a map from fileIDs to the scores they got (higher is
- * better). This map will only contains entries whose score was above our
- * minimum threshold.
+ * Find the files whose CLIP embedding "matches" the given {@link searchPhrase}.
  *
  * The result can also be `undefined`, which indicates that the download for the
  * ML model is still in progress (trying again later should succeed).
  */
 export const clipMatches = async (
     searchPhrase: string,
-    electron: Electron,
-): Promise<Map<number, number> | undefined> => {
+    electron: ElectronMLWorker,
+): Promise<CLIPMatches | undefined> => {
     const t = await electron.computeCLIPTextEmbeddingIfAvailable(searchPhrase);
     if (!t) return undefined;
 
     const textEmbedding = normalized(t);
-    const items = (await clipIndexes()).map(
+    const items = (await cachedOrReadCLIPIndexes()).map(
         ({ fileID, embedding }) =>
-            // What we want to do is `cosineSimilarity`, but since both the
-            // embeddings involved are already normalized, we can save the norm
-            // calculations and directly do their `dotProduct`.
-            //
-            // This code is on the hot path, so these optimizations help.
+            // The dot product gives us cosine similarity here since both the
+            // vectors are already normalized.
             [fileID, dotProduct(embedding, textEmbedding)] as const,
     );
-    return new Map(items.filter(([, score]) => score >= 0.23));
+    // This score threshold was obtain heuristically. 0.2 generally gives solid
+    // results, and around 0.15 we start getting many false positives (all this
+    // is query dependent too).
+    return new Map(items.filter(([, score]) => score >= 0.175));
 };
+
+let _cachedCLIPIndexes:
+    | { fileID: number; embedding: Float32Array }[]
+    | undefined;
+
+/**
+ * Cache the CLIP indexes for the duration of a "search session" to avoid
+ * converting them from number[] to Float32Array during the match.
+ *
+ * Converting them to Float32Array gives a big performance boost (See: [Note:
+ * Dot product performance]). But doing that each time loses out on the
+ * amortized benefit, so this temporary cache is as attempt to alleviate that.
+ *
+ * Use {@link clearCachedCLIPIndexes} to clear the cache (e.g. after indexing
+ * produces potentially new CLIP indexes).
+ */
+const cachedOrReadCLIPIndexes = async () =>
+    (_cachedCLIPIndexes ??= (await clipIndexes()).map(
+        ({ fileID, embedding }) => ({
+            fileID,
+            embedding: new Float32Array(embedding),
+        }),
+    ));
+
+export const clearCachedCLIPIndexes = () => (_cachedCLIPIndexes = undefined);

@@ -69,10 +69,10 @@ packages:
     dependency: "direct main"
     description:
       name: archive
-      sha256: "22600aa1e926be775fa5fe7e6894e7fb3df9efda8891c73f70fb3262399a432d"
+      sha256: cb6a278ef2dbb298455e1a713bda08524a175630ec643a242c399c932a0a1f7d
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.10"
+    version: "3.6.1"
   args:
     dependency: transitive
     description:
@@ -251,13 +251,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.1"
-  clip_ggml:
-    dependency: "direct main"
-    description:
-      path: "plugins/clip_ggml"
-      relative: true
-    source: path
-    version: "0.0.1"
   clock:
     dependency: transitive
     description:
@@ -710,6 +703,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+  flutter_cube:
+    dependency: transitive
+    description:
+      name: flutter_cube
+      sha256: "71cf679a251166eb97f86751c56582b09abdbf859485fbf60524948813914c3b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   flutter_datetime_picker_bdaya:
     dependency: "direct main"
     description:
@@ -775,18 +776,18 @@ packages:
     dependency: "direct dev"
     description:
       name: flutter_lints
-      sha256: a25a15ebbdfc33ab1cd26c63a6ee519df92338a9c10f122adda92938253bef04
+      sha256: "9e8c3858111da373efc5aa341de011d9bd23e2c5c5e0c62bccf32438e192d7b1"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.3"
+    version: "3.0.2"
   flutter_local_notifications:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: f9a05409385b77b06c18f200a41c7c2711ebf7415669350bb0f8474c07bd40d1
+      sha256: dd6676d8c2926537eccdf9f72128bbb2a9d0814689527b17f92c248ff192eaf3
       url: "https://pub.dev"
     source: hosted
-    version: "17.0.0"
+    version: "17.2.1+2"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
@@ -799,10 +800,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_local_notifications_platform_interface
-      sha256: "7cf643d6d5022f3baed0be777b0662cce5919c0a7b86e700299f22dc4ae660ef"
+      sha256: "85f8d07fe708c1bdcf45037f2c0109753b26ae077e9d9e899d55971711a4ea66"
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.0+1"
+    version: "7.2.0"
   flutter_localizations:
     dependency: "direct main"
     description: flutter
@@ -1023,6 +1024,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.1"
+  heif_converter:
+    dependency: "direct main"
+    description:
+      name: heif_converter
+      sha256: "63ffc2a72026942de3fcb61450da197100759936085c8279aef35b995b3c1bb3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   hex:
     dependency: transitive
     description:
@@ -1091,10 +1100,10 @@ packages:
     dependency: "direct main"
     description:
       name: image
-      sha256: "4c68bfd5ae83e700b5204c1e74451e7bf3cf750e6843c6e158289cf56bda018e"
+      sha256: "2237616a36c0d69aef7549ab439b833fb7f9fb9fc861af2cc9ac3eedddd69ca8"
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.7"
+    version: "4.2.0"
   image_editor:
     dependency: "direct main"
     description:
@@ -1320,10 +1329,10 @@ packages:
     dependency: transitive
     description:
       name: lints
-      sha256: "0a217c6c989d21039f1498c3ed9f3ed71b354e69873f13a8dfc3c9fe76f1b452"
+      sha256: cbf8d4b858bb0134ef3ef87841abdf8d63bfc255c266b7bf6b39daa1085c4290
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "3.0.0"
   lists:
     dependency: transitive
     description:
@@ -1412,6 +1421,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.3"
+  maps_launcher:
+    dependency: "direct main"
+    description:
+      name: maps_launcher
+      sha256: "57ba3c31db96e30f58c23fcb22a1fac6accc5683535b2cf344c534bbb9f8f910"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.1"
   matcher:
     dependency: transitive
     description:
@@ -1557,6 +1574,15 @@ packages:
       url: "https://github.com/ente-io/motion_photo.git"
     source: git
     version: "0.0.6"
+  motion_sensors:
+    dependency: transitive
+    description:
+      path: "."
+      ref: aves
+      resolved-ref: "4b11d59f4bda152627f701070272f657f8358e67"
+      url: "https://github.com/deckerst/aves_panorama_motion_sensors.git"
+    source: git
+    version: "0.1.0"
   motionphoto:
     dependency: "direct main"
     description:
@@ -1582,6 +1608,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.2+6"
+  nanoid:
+    dependency: "direct main"
+    description:
+      name: nanoid
+      sha256: be3f8752d9046c825df2f3914195151eb876f3ad64b9d833dd0b799b77b8759e
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  native_video_player:
+    dependency: "direct main"
+    description:
+      name: native_video_player
+      sha256: "8df92df138c13ebf9df6b30525f9c4198534705fd450a98da14856d3a0e48cd4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.1"
   nested:
     dependency: transitive
     description:
@@ -1614,15 +1656,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  onnx_dart:
+    dependency: "direct main"
+    description:
+      path: "plugins/onnx_dart"
+      relative: true
+    source: path
+    version: "0.0.1"
   onnxruntime:
     dependency: "direct main"
     description:
       path: "."
-      ref: ente_onnxruntime
-      resolved-ref: fb9393e36013790938b5bc995a4dca15fed3c944
+      ref: ios_only
+      resolved-ref: "70e163745e082b81235d7330b9d5e8c110ed68e4"
       url: "https://github.com/ente-io/onnxruntime.git"
     source: git
-    version: "1.1.0"
+    version: "1.4.1"
   open_mail_app:
     dependency: "direct main"
     description:
@@ -1663,6 +1712,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  panorama:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: blur
+      resolved-ref: d7bf958d045ce5c06080aaa39074546f46f064d1
+      url: "https://github.com/ente-io/panorama_blur.git"
+    source: git
+    version: "0.4.1"
   password_strength:
     dependency: "direct main"
     description:
@@ -1835,10 +1893,10 @@ packages:
     dependency: "direct main"
     description:
       name: pinput
-      sha256: "543da5bfdefd9e06914a12100f8c9156f84cef3efc14bca507c49e966c5b813b"
+      sha256: "7bf9aa7d0eeb3da9f7d49d2087c7bc7d36cd277d2e94cc31c6da52e1ebb048d0"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.0"
+    version: "5.0.0"
   platform:
     dependency: transitive
     description:
@@ -1879,6 +1937,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.1"
+  privacy_screen:
+    dependency: "direct main"
+    description:
+      name: privacy_screen
+      sha256: b80297d2726d96e8a8341149e81a415302755f02d3af7c05c820d9e191bbfbee
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.6"
   process:
     dependency: transitive
     description:
@@ -2156,14 +2222,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
-  smart_auth:
-    dependency: transitive
-    description:
-      name: smart_auth
-      sha256: a25229b38c02f733d0a4e98d941b42bed91a976cb589e934895e60ccfa674cf6
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.1"
   source_gen:
     dependency: transitive
     description:
@@ -2532,6 +2590,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.1"
+  utility:
+    dependency: transitive
+    description:
+      name: utility
+      sha256: "200d264c3804e87da7ea36aa81bd73fb845d2cb7b2e820f3f357a0a2bd4e37f5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
   uuid:
     dependency: "direct main"
     description:
@@ -2735,13 +2801,13 @@ packages:
     source: hosted
     version: "0.0.2"
   win32:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: win32
-      sha256: "464f5674532865248444b4c3daca12bd9bf2d7c47f759ce2617986e7229494a8"
+      sha256: "015002c060f1ae9f41a818f2d5640389cc05283e368be19dc8d77cecb43c40c9"
       url: "https://pub.dev"
     source: hosted
-    version: "5.2.0"
+    version: "5.5.3"
   win32_registry:
     dependency: transitive
     description:
@@ -2782,6 +2848,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  xmp:
+    dependency: "direct main"
+    description:
+      name: xmp
+      sha256: "317a023e882101713cd12a25aa9f2e2f2ed61146f2a79e20ed0dd31787b9b895"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
   yaml:
     dependency: transitive
     description:
@@ -2791,5 +2865,5 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.4.0 <4.0.0"
+  dart: ">=3.4.3 <4.0.0"
   flutter: ">=3.22.0"

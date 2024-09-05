@@ -21,10 +21,10 @@ export default function TwoFactorModalManageSection(props: Iprops) {
             title: t("DISABLE_TWO_FACTOR"),
 
             content: t("DISABLE_TWO_FACTOR_MESSAGE"),
-            close: { text: t("CANCEL") },
+            close: { text: t("cancel") },
             proceed: {
                 variant: "critical",
-                text: t("DISABLE"),
+                text: t("disable"),
                 action: twoFactorDisable,
             },
         });
@@ -51,7 +51,7 @@ export default function TwoFactorModalManageSection(props: Iprops) {
             title: t("UPDATE_TWO_FACTOR"),
 
             content: t("UPDATE_TWO_FACTOR_MESSAGE"),
-            close: { text: t("CANCEL") },
+            close: { text: t("cancel") },
             proceed: {
                 variant: "accent",
                 text: t("UPDATE"),
@@ -83,7 +83,7 @@ export default function TwoFactorModalManageSection(props: Iprops) {
                         onClick={warnTwoFactorReconfigure}
                         size="large"
                     >
-                        {t("RECONFIGURE")}
+                        {t("reconfigure")}
                     </Button>
                 </Grid>
             </Grid>
@@ -103,7 +103,7 @@ export default function TwoFactorModalManageSection(props: Iprops) {
                         onClick={warnTwoFactorDisable}
                         size="large"
                     >
-                        {t("DISABLE")}
+                        {t("disable")}
                     </Button>
                 </Grid>
             </Grid>

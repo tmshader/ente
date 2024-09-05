@@ -123,7 +123,7 @@ Future<void> _sendLogs(
   }
 }
 
-Future<void> sendLogsForInit(
+Future<void> triggerSendLogs(
   String toEmail,
   String? subject,
   String? body,
@@ -153,7 +153,7 @@ Future<String> getZippedLogsFile(BuildContext? context) async {
   final encoder = ZipFileEncoder();
   encoder.create(zipFilePath);
   await encoder.addDirectory(logsDirectory);
-  encoder.close();
+  await encoder.close();
   if (context != null) {
     await dialog.hide();
   }
