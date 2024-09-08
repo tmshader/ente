@@ -1,3 +1,4 @@
+import { stashRedirect } from "@/accounts/services/redirect";
 import log from "@/base/log";
 import { WhatsNew } from "@/new/photos/components/WhatsNew";
 import { shouldShowWhatsNew } from "@/new/photos/services/changelog";
@@ -7,6 +8,12 @@ import {
     getLocalTrashedFiles,
 } from "@/new/photos/services/files";
 import { wipHasSwitchedOnceCmpAndSet } from "@/new/photos/services/ml";
+import { search, setSearchableFiles } from "@/new/photos/services/search";
+import {
+    SearchQuery,
+    SearchResultSummary,
+    UpdateSearch,
+} from "@/new/photos/services/search/types";
 import { EnteFile } from "@/new/photos/types/file";
 import { mergeMetadata } from "@/new/photos/utils/file";
 import { CenteredFlex } from "@ente/shared/components/Container";
@@ -16,7 +23,6 @@ import { getRecoveryKey } from "@ente/shared/crypto/helpers";
 import { CustomError } from "@ente/shared/error";
 import { useFileInput } from "@ente/shared/hooks/useFileInput";
 import useMemoSingleThreaded from "@ente/shared/hooks/useMemoSingleThreaded";
-import InMemoryStore, { MS_KEYS } from "@ente/shared/storage/InMemoryStore";
 import { LS_KEYS, getData } from "@ente/shared/storage/localStorage";
 import {
     getToken,
@@ -31,16 +37,17 @@ import {
     getKey,
 } from "@ente/shared/storage/sessionStorage";
 import type { User } from "@ente/shared/user/types";
-import { isPromise } from "@ente/shared/utils";
 import { Typography, styled } from "@mui/material";
 import AuthenticateUserModal from "components/AuthenticateUserModal";
 import Collections from "components/Collections";
+import { CollectionInfo } from "components/Collections/CollectionInfo";
 import CollectionNamer, {
     CollectionNamerAttributes,
 } from "components/Collections/CollectionNamer";
 import CollectionSelector, {
     CollectionSelectorAttributes,
 } from "components/Collections/CollectionSelector";
+import { CollectionInfoBarWrapper } from "components/Collections/styledComponents";
 import ExportModal from "components/ExportModal";
 import {
     FilesDownloadProgress,
@@ -54,7 +61,6 @@ import GalleryEmptyState from "components/GalleryEmptyState";
 import { LoadingOverlay } from "components/LoadingOverlay";
 import PhotoFrame from "components/PhotoFrame";
 import { ITEM_TYPE, TimeStampListItem } from "components/PhotoList";
-import SearchResultInfo from "components/Search/SearchResultInfo";
 import Sidebar from "components/Sidebar";
 import type { UploadTypeSelectorIntent } from "components/Upload/UploadTypeSelector";
 import Uploader from "components/Upload/Uploader";
@@ -94,7 +100,6 @@ import {
     getSectionSummaries,
 } from "services/collectionService";
 import { syncFiles } from "services/fileService";
-import locationSearchService from "services/locationSearchService";
 import { sync, triggerPreFileInfoSync } from "services/sync";
 import { syncTrash } from "services/trashService";
 import uploadManager from "services/upload/uploadManager";
@@ -106,7 +111,6 @@ import {
     SetFilesDownloadProgressAttributes,
     SetFilesDownloadProgressAttributesCreator,
 } from "types/gallery";
-import { Search, SearchResultSummary, UpdateSearch } from "types/search";
 import { FamilyData } from "types/user";
 import { checkSubscriptionPurchase } from "utils/billing";
 import {
@@ -119,7 +123,6 @@ import {
     hasNonSystemCollections,
     splitNormalAndHiddenCollections,
 } from "utils/collection";
-import ComlinkSearchWorker from "utils/comlink/ComlinkSearchWorker";
 import {
     FILE_OPS_TYPE,
     constructFileToCollectionMap,
@@ -193,7 +196,7 @@ export default function Gallery() {
     const [collectionNamerAttributes, setCollectionNamerAttributes] =
         useState<CollectionNamerAttributes>(null);
     const [collectionNamerView, setCollectionNamerView] = useState(false);
-    const [search, setSearch] = useState<Search>(null);
+    const [searchQuery, setSearchQuery] = useState<SearchQuery>(null);
     const [shouldDisableDropzone, setShouldDisableDropzone] = useState(false);
     const [isPhotoSwipeOpen, setIsPhotoSwipeOpen] = useState(false);
     // TODO(MR): This is never true currently, this is the WIP ability to show
@@ -340,7 +343,7 @@ export default function Gallery() {
         const key = getKey(SESSION_KEYS.ENCRYPTION_KEY);
         const token = getToken();
         if (!key || !token) {
-            InMemoryStore.set(MS_KEYS.REDIRECT_URL, PAGES.GALLERY);
+            stashRedirect(PAGES.GALLERY);
             router.push("/");
             return;
         }
@@ -384,7 +387,6 @@ export default function Gallery() {
             setIsFirstLoad(false);
             setJustSignedUp(false);
             setIsFirstFetch(false);
-            locationSearchService.loadCities();
             syncInterval.current = setInterval(() => {
                 syncWithRemote(false, true);
             }, SYNC_INTERVAL_IN_MICROSECONDS);
@@ -400,13 +402,7 @@ export default function Gallery() {
         };
     }, []);
 
-    useEffectSingleThreaded(
-        async ([files]: [files: EnteFile[]]) => {
-            const searchWorker = await ComlinkSearchWorker.getInstance();
-            await searchWorker.setFiles(files);
-        },
-        [files],
-    );
+    useEffect(() => setSearchableFiles(files), [files]);
 
     useEffect(() => {
         if (!user || !files || !collections || !hiddenFiles || !trashedFiles) {
@@ -485,7 +481,7 @@ export default function Gallery() {
             setPhotoListHeader({
                 height: 104,
                 item: (
-                    <SearchResultInfo
+                    <SearchResultSummaryHeader
                         searchResultSummary={searchResultSummary}
                     />
                 ),
@@ -523,11 +519,9 @@ export default function Gallery() {
             ]);
         }
 
-        const searchWorker = await ComlinkSearchWorker.getInstance();
-
         let filteredFiles: EnteFile[] = [];
         if (isInSearchMode) {
-            filteredFiles = getUniqueFiles(await searchWorker.search(search));
+            filteredFiles = getUniqueFiles(await search(searchQuery));
         } else {
             filteredFiles = getUniqueFiles(
                 (isInHiddenSection ? hiddenFiles : files).filter((item) => {
@@ -587,9 +581,9 @@ export default function Gallery() {
                 }),
             );
         }
-        if (search?.clip) {
+        if (searchQuery?.clip) {
             return filteredFiles.sort((a, b) => {
-                return search.clip.get(b.id) - search.clip.get(a.id);
+                return searchQuery.clip.get(b.id) - searchQuery.clip.get(a.id);
             });
         }
         const sortAsc = activeCollection?.pubMagicMetadata?.data?.asc ?? false;
@@ -605,7 +599,7 @@ export default function Gallery() {
         tempDeletedFileIds,
         tempHiddenFileIds,
         hiddenFileIds,
-        search,
+        searchQuery,
         activeCollectionID,
         archivedCollections,
     ]);
@@ -975,7 +969,7 @@ export default function Gallery() {
         if (newSearch?.collection) {
             setActiveCollectionID(newSearch?.collection);
         } else {
-            setSearch(newSearch);
+            setSearchQuery(newSearch);
         }
         setIsClipSearchResult(!!newSearch?.clip);
         if (!newSearch?.collection) {
@@ -1243,37 +1237,6 @@ export default function Gallery() {
     );
 }
 
-// useEffectSingleThreaded is a useEffect that will only run one at a time, and will
-// caches the latest deps of requests that come in while it is running, and will
-// run that after the current run is complete.
-function useEffectSingleThreaded(
-    fn: (deps) => void | Promise<void>,
-    deps: any[],
-): void {
-    const updateInProgress = useRef(false);
-    const nextRequestDepsRef = useRef<any[]>(null);
-    useEffect(() => {
-        const main = async (deps) => {
-            if (updateInProgress.current) {
-                nextRequestDepsRef.current = deps;
-                return;
-            }
-            updateInProgress.current = true;
-            const result = fn(deps);
-            if (isPromise(result)) {
-                await result;
-            }
-            updateInProgress.current = false;
-            if (nextRequestDepsRef.current) {
-                const deps = nextRequestDepsRef.current;
-                nextRequestDepsRef.current = null;
-                setTimeout(() => main(deps), 0);
-            }
-        };
-        main(deps);
-    }, deps);
-}
-
 /**
  * Preload all three variants of a responsive image.
  */
@@ -1289,4 +1252,27 @@ const mergeMaps = <K, V>(map1: Map<K, V>, map2: Map<K, V>) => {
         mergedMap.set(key, value);
     });
     return mergedMap;
+};
+
+interface SearchResultSummaryHeaderProps {
+    searchResultSummary: SearchResultSummary;
+}
+
+const SearchResultSummaryHeader: React.FC<SearchResultSummaryHeaderProps> = ({
+    searchResultSummary,
+}) => {
+    if (!searchResultSummary) {
+        return <></>;
+    }
+
+    const { optionName, fileCount } = searchResultSummary;
+
+    return (
+        <CollectionInfoBarWrapper>
+            <Typography color="text.muted" variant="large">
+                {t("search_results")}
+            </Typography>
+            <CollectionInfo name={optionName} fileCount={fileCount} />
+        </CollectionInfoBarWrapper>
+    );
 };

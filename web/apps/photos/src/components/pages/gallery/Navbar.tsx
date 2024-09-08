@@ -1,14 +1,14 @@
 import { NavbarBase } from "@/base/components/Navbar";
+import { UpdateSearch } from "@/new/photos/services/search/types";
 import { EnteFile } from "@/new/photos/types/file";
 import { FlexWrapper, HorizontalFlex } from "@ente/shared/components/Container";
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import MenuIcon from "@mui/icons-material/Menu";
 import { IconButton, Typography } from "@mui/material";
-import SearchBar from "components/Search/SearchBar";
+import SearchBar from "components/SearchBar";
 import UploadButton from "components/Upload/UploadButton";
 import { t } from "i18next";
 import { Collection } from "types/collection";
-import { UpdateSearch } from "types/search";
 
 interface Iprops {
     openSidebar: () => void;
