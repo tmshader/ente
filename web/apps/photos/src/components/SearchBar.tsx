@@ -1,3 +1,4 @@
+import { useIsMobileWidth } from "@/base/hooks";
 import { FileType } from "@/media/file-type";
 import { PeopleList } from "@/new/photos/components/PeopleList";
 import { isMLEnabled } from "@/new/photos/services/ml";
@@ -5,6 +6,7 @@ import type {
     City,
     SearchDateComponents,
     SearchPerson,
+    SearchResultSummary,
 } from "@/new/photos/services/search/types";
 import {
     ClipSearchScores,
@@ -12,7 +14,6 @@ import {
     SearchQuery,
     Suggestion,
     SuggestionType,
-    UpdateSearch,
 } from "@/new/photos/services/search/types";
 import { labelForSuggestionType } from "@/new/photos/services/search/ui";
 import type { LocationTag } from "@/new/photos/services/user-entity";
@@ -33,7 +34,6 @@ import LocationIcon from "@mui/icons-material/LocationOn";
 import SearchIcon from "@mui/icons-material/Search";
 import {
     Box,
-    css,
     Divider,
     IconButton,
     Stack,
@@ -42,7 +42,7 @@ import {
 } from "@mui/material";
 import CollectionCard from "components/Collections/CollectionCard";
 import { ResultPreviewTile } from "components/Collections/styledComponents";
-import { IMAGE_CONTAINER_MAX_WIDTH, MIN_COLUMNS } from "constants/gallery";
+import { IMAGE_CONTAINER_MAX_WIDTH, MIN_COLUMNS } from "components/PhotoList";
 import { t } from "i18next";
 import memoize from "memoize-one";
 import pDebounce from "p-debounce";
@@ -57,39 +57,47 @@ import {
     getDefaultOptions,
 } from "services/searchService";
 import { Collection } from "types/collection";
-import { SelectStyles } from "../styles/search";
 
 const { Option, ValueContainer, Menu } = components;
 
 interface SearchBarProps {
-    updateSearch: UpdateSearch;
-    collections: Collection[];
-    files: EnteFile[];
     isInSearchMode: boolean;
     setIsInSearchMode: (v: boolean) => void;
+    collections: Collection[];
+    files: EnteFile[];
+    updateSearch: UpdateSearch;
 }
 
-export default function SearchBar({
+export type UpdateSearch = (
+    search: SearchQuery,
+    summary: SearchResultSummary,
+) => void;
+
+export const SearchBar: React.FC<SearchBarProps> = ({
     setIsInSearchMode,
     isInSearchMode,
     ...props
-}: SearchBarProps) {
+}) => {
     const showSearchInput = () => setIsInSearchMode(true);
+    const isMobileWidth = useIsMobileWidth();
 
     return (
         <SearchBarWrapper>
-            <SearchInput
-                {...props}
-                isOpen={isInSearchMode}
-                setIsOpen={setIsInSearchMode}
-            />
-            <SearchBarMobile
-                show={!isInSearchMode}
-                showSearchInput={showSearchInput}
-            />
+            {isMobileWidth ? (
+                <SearchBarMobile
+                    show={!isInSearchMode}
+                    showSearchInput={showSearchInput}
+                />
+            ) : (
+                <SearchInput
+                    {...props}
+                    isOpen={isInSearchMode}
+                    setIsOpen={setIsInSearchMode}
+                />
+            )}
         </SearchBarWrapper>
     );
-}
+};
 
 const SearchBarWrapper = styled(FlexWrapper)`
     padding: 0 24px;
@@ -113,23 +121,23 @@ const createComponents = memoize((Option, ValueContainer, Menu, Input) => ({
     Input,
 }));
 
-export const SearchInput: React.FC<SearchInputProps> = (props) => {
-    const selectRef = useRef(null);
-    const [value, setValue] = useState<SearchOption>(null);
+const SearchInput: React.FC<SearchInputProps> = (props) => {
     const appContext = useContext(AppContext);
+    const [value, setValue] = useState<SearchOption>(null);
+    const selectRef = useRef(null);
+    const [defaultOptions, setDefaultOptions] = useState([]);
+    const [query, setQuery] = useState("");
+
     const handleChange = (value: SearchOption) => {
         setValue(value);
         setQuery(value?.label);
-
-        blur();
+        selectRef.current?.blur();
     };
     const handleInputChange = (value: string, actionMeta: InputActionMeta) => {
         if (actionMeta.action === "input-change") {
             setQuery(value);
         }
     };
-    const [defaultOptions, setDefaultOptions] = useState([]);
-    const [query, setQuery] = useState("");
 
     useEffect(() => {
         search(value);
@@ -166,10 +174,6 @@ export const SearchInput: React.FC<SearchInputProps> = (props) => {
         ),
         [props.files, props.collections],
     );
-
-    const blur = () => {
-        selectRef.current?.blur();
-    };
 
     const search = (selectedOption: SearchOption) => {
         if (!selectedOption) {
@@ -248,7 +252,7 @@ export const SearchInput: React.FC<SearchInputProps> = (props) => {
     );
 
     return (
-        <SearchInputWrapper isOpen={props.isOpen}>
+        <SearchInputWrapper>
             <AsyncSelect
                 ref={selectRef}
                 value={value}
@@ -275,20 +279,77 @@ export const SearchInput: React.FC<SearchInputProps> = (props) => {
     );
 };
 
-const SearchInputWrapper = styled(CenteredFlex, {
-    shouldForwardProp: (propName) => propName != "isOpen",
-})<{ isOpen: boolean }>`
+const SearchInputWrapper = styled(CenteredFlex)`
     background: ${({ theme }) => theme.colors.background.base};
     max-width: 484px;
     margin: auto;
-    ${(props) =>
-        !props.isOpen &&
-        css`
-            @media (max-width: 624px) {
-                display: none;
-            }
-        `}
 `;
+
+const SelectStyles = {
+    container: (style) => ({
+        ...style,
+        flex: 1,
+    }),
+    control: (style, { isFocused }) => ({
+        ...style,
+        backgroundColor: "rgba(255, 255, 255, 0.1)",
+
+        borderColor: isFocused ? "#1dba54" : "transparent",
+        boxShadow: "none",
+        ":hover": {
+            borderColor: "#1dba54",
+            cursor: "text",
+        },
+    }),
+    input: (style) => ({
+        ...style,
+        color: "#fff",
+    }),
+    menu: (style) => ({
+        ...style,
+        marginTop: "1px",
+        backgroundColor: "#1b1b1b",
+    }),
+    option: (style, { isFocused }) => ({
+        ...style,
+        padding: 0,
+        backgroundColor: "transparent !important",
+        "& :hover": {
+            cursor: "pointer",
+        },
+        "& .main": {
+            backgroundColor: isFocused && "#202020",
+        },
+        "&:last-child .MuiDivider-root": {
+            display: "none",
+        },
+    }),
+    dropdownIndicator: (style) => ({
+        ...style,
+        display: "none",
+    }),
+    indicatorSeparator: (style) => ({
+        ...style,
+        display: "none",
+    }),
+    clearIndicator: (style) => ({
+        ...style,
+        display: "none",
+    }),
+    singleValue: (style) => ({
+        ...style,
+        backgroundColor: "transparent",
+        color: "#d1d1d1",
+        marginLeft: "36px",
+    }),
+    placeholder: (style) => ({
+        ...style,
+        color: "rgba(255, 255, 255, 0.7)",
+        wordSpacing: "2px",
+        whiteSpace: "nowrap",
+        marginLeft: "40px",
+    }),
+};
 
 const OptionWithInfo = (props) => (
     <Option {...props}>
@@ -368,7 +429,7 @@ const getIconByType = (type: SuggestionType) => {
     }
 };
 
-export const MenuWithPeople = (props) => {
+const MenuWithPeople = (props) => {
     // log.info("props.selectProps.options: ", selectRef);
     const peopleSuggestions = props.selectProps.options.filter(
         (o) => o.type === SuggestionType.PERSON,
@@ -453,7 +514,4 @@ const SearchMobileBox = styled(FluidContainer)`
     cursor: pointer;
     align-items: center;
     justify-content: flex-end;
-    @media (min-width: 625px) {
-        display: none;
-    }
 `;

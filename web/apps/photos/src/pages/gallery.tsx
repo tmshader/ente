@@ -1,4 +1,6 @@
 import { stashRedirect } from "@/accounts/services/redirect";
+import { NavbarBase } from "@/base/components/Navbar";
+import { useIsMobileWidth } from "@/base/hooks";
 import log from "@/base/log";
 import { WhatsNew } from "@/new/photos/components/WhatsNew";
 import { shouldShowWhatsNew } from "@/new/photos/services/changelog";
@@ -12,11 +14,14 @@ import { search, setSearchableFiles } from "@/new/photos/services/search";
 import {
     SearchQuery,
     SearchResultSummary,
-    UpdateSearch,
 } from "@/new/photos/services/search/types";
 import { EnteFile } from "@/new/photos/types/file";
 import { mergeMetadata } from "@/new/photos/utils/file";
-import { CenteredFlex } from "@ente/shared/components/Container";
+import {
+    CenteredFlex,
+    FlexWrapper,
+    HorizontalFlex,
+} from "@ente/shared/components/Container";
 import EnteSpinner from "@ente/shared/components/EnteSpinner";
 import { PHOTOS_PAGES as PAGES } from "@ente/shared/constants/pages";
 import { getRecoveryKey } from "@ente/shared/crypto/helpers";
@@ -37,7 +42,10 @@ import {
     getKey,
 } from "@ente/shared/storage/sessionStorage";
 import type { User } from "@ente/shared/user/types";
-import { Typography, styled } from "@mui/material";
+import ArrowBack from "@mui/icons-material/ArrowBack";
+import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
+import MenuIcon from "@mui/icons-material/Menu";
+import { Box, Button, IconButton, Typography, styled } from "@mui/material";
 import AuthenticateUserModal from "components/AuthenticateUserModal";
 import Collections from "components/Collections";
 import { CollectionInfo } from "components/Collections/CollectionInfo";
@@ -61,21 +69,13 @@ import GalleryEmptyState from "components/GalleryEmptyState";
 import { LoadingOverlay } from "components/LoadingOverlay";
 import PhotoFrame from "components/PhotoFrame";
 import { ITEM_TYPE, TimeStampListItem } from "components/PhotoList";
+import { SearchBar, type UpdateSearch } from "components/SearchBar";
 import Sidebar from "components/Sidebar";
-import type { UploadTypeSelectorIntent } from "components/Upload/UploadTypeSelector";
+import { type UploadTypeSelectorIntent } from "components/Upload/UploadTypeSelector";
 import Uploader from "components/Upload/Uploader";
 import { UploadSelectorInputs } from "components/UploadSelectorInputs";
-import { GalleryNavbar } from "components/pages/gallery/Navbar";
 import PlanSelector from "components/pages/gallery/PlanSelector";
 import SelectedFileOptions from "components/pages/gallery/SelectedFileOptions";
-import {
-    ALL_SECTION,
-    ARCHIVE_SECTION,
-    CollectionSummaryType,
-    HIDDEN_ITEMS_SECTION,
-    TRASH_SECTION,
-} from "constants/collection";
-import { SYNC_INTERVAL_IN_MICROSECONDS } from "constants/gallery";
 import { t } from "i18next";
 import { useRouter } from "next/router";
 import { AppContext } from "pages/_app";
@@ -114,7 +114,12 @@ import {
 import { FamilyData } from "types/user";
 import { checkSubscriptionPurchase } from "utils/billing";
 import {
+    ALL_SECTION,
+    ARCHIVE_SECTION,
     COLLECTION_OPS_TYPE,
+    CollectionSummaryType,
+    HIDDEN_ITEMS_SECTION,
+    TRASH_SECTION,
     constructCollectionNameMap,
     getArchivedCollections,
     getDefaultHiddenCollectionIDs,
@@ -134,6 +139,8 @@ import {
 import { isArchivedFile } from "utils/magicMetadata";
 import { getSessionExpiredMessage } from "utils/ui";
 import { getLocalFamilyData } from "utils/user/family";
+
+const SYNC_INTERVAL_IN_MICROSECONDS = 1000 * 60 * 5; // 5 minutes
 
 export const DeadCenter = styled("div")`
     flex: 1;
@@ -182,7 +189,6 @@ export default function Gallery() {
     const [favItemIds, setFavItemIds] = useState<Set<number>>();
 
     const [isFirstLoad, setIsFirstLoad] = useState(false);
-    const [isFirstFetch, setIsFirstFetch] = useState(false);
     const [selected, setSelected] = useState<SelectedState>({
         ownCount: 0,
         count: 0,
@@ -358,7 +364,6 @@ export default function Gallery() {
             setupSelectAllKeyBoardShortcutHandler();
             setActiveCollectionID(ALL_SECTION);
             setIsFirstLoad(isFirstLogin());
-            setIsFirstFetch(true);
             if (justSignedUp()) {
                 setPlanModalView(true);
             }
@@ -386,7 +391,6 @@ export default function Gallery() {
             await syncWithRemote(true);
             setIsFirstLoad(false);
             setJustSignedUp(false);
-            setIsFirstFetch(false);
             syncInterval.current = setInterval(() => {
                 syncWithRemote(false, true);
             }, SYNC_INTERVAL_IN_MICROSECONDS);
@@ -968,16 +972,13 @@ export default function Gallery() {
     const updateSearch: UpdateSearch = (newSearch, summary) => {
         if (newSearch?.collection) {
             setActiveCollectionID(newSearch?.collection);
+            setIsInSearchMode(false);
         } else {
             setSearchQuery(newSearch);
-        }
-        setIsClipSearchResult(!!newSearch?.clip);
-        if (!newSearch?.collection) {
             setIsInSearchMode(!!newSearch);
             setSetSearchResultSummary(summary);
-        } else {
-            setIsInSearchMode(false);
         }
+        setIsClipSearchResult(!!newSearch?.clip);
     };
 
     const openUploader = (intent?: UploadTypeSelectorIntent) => {
@@ -1073,18 +1074,25 @@ export default function Gallery() {
                     hide={() => setFixCreationTimeView(false)}
                     attributes={fixCreationTimeAttributes}
                 />
-                <GalleryNavbar
-                    openSidebar={openSidebar}
-                    isFirstFetch={isFirstFetch}
-                    setIsInSearchMode={setIsInSearchMode}
-                    isInHiddenSection={isInHiddenSection}
-                    openUploader={openUploader}
-                    isInSearchMode={isInSearchMode}
-                    collections={collections}
-                    files={files}
-                    updateSearch={updateSearch}
-                    exitHiddenSection={exitHiddenSection}
-                />
+                <NavbarBase
+                    sx={{ background: "transparent", position: "absolute" }}
+                >
+                    {isInHiddenSection ? (
+                        <HiddenSectionNavbarContents
+                            onBack={exitHiddenSection}
+                        />
+                    ) : (
+                        <NormalNavbarContents
+                            openSidebar={openSidebar}
+                            setIsInSearchMode={setIsInSearchMode}
+                            openUploader={openUploader}
+                            isInSearchMode={isInSearchMode}
+                            collections={collections}
+                            files={files}
+                            updateSearch={updateSearch}
+                        />
+                    )}
+                </NavbarBase>
 
                 <Collections
                     activeCollection={activeCollection}
@@ -1253,6 +1261,94 @@ const mergeMaps = <K, V>(map1: Map<K, V>, map2: Map<K, V>) => {
     });
     return mergedMap;
 };
+
+interface NormalNavbarContentsProps {
+    openSidebar: () => void;
+    openUploader: () => void;
+    isInSearchMode: boolean;
+    setIsInSearchMode: (v: boolean) => void;
+    collections: Collection[];
+    files: EnteFile[];
+    updateSearch: UpdateSearch;
+}
+
+const NormalNavbarContents: React.FC<NormalNavbarContentsProps> = ({
+    openSidebar,
+    openUploader,
+    isInSearchMode,
+    collections,
+    files,
+    updateSearch,
+    setIsInSearchMode,
+}) => {
+    return (
+        <>
+            {!isInSearchMode && (
+                <IconButton onClick={openSidebar}>
+                    <MenuIcon />
+                </IconButton>
+            )}
+            <SearchBar
+                isInSearchMode={isInSearchMode}
+                setIsInSearchMode={setIsInSearchMode}
+                collections={collections}
+                files={files}
+                updateSearch={updateSearch}
+            />
+            {!isInSearchMode && <UploadButton onClick={openUploader} />}
+        </>
+    );
+};
+
+interface UploadButtonProps {
+    onClick: () => void;
+}
+export const UploadButton: React.FC<UploadButtonProps> = ({ onClick }) => {
+    const disabled = !uploadManager.shouldAllowNewUpload();
+    const isMobileWidth = useIsMobileWidth();
+
+    return (
+        <Box>
+            {isMobileWidth ? (
+                <IconButton onClick={onClick} disabled={disabled}>
+                    {<FileUploadOutlinedIcon />}
+                </IconButton>
+            ) : (
+                <Button
+                    onClick={onClick}
+                    disabled={disabled}
+                    color={"secondary"}
+                    startIcon={<FileUploadOutlinedIcon />}
+                >
+                    {t("upload")}
+                </Button>
+            )}
+        </Box>
+    );
+};
+
+interface HiddenSectionNavbarContentsProps {
+    onBack: () => void;
+}
+
+const HiddenSectionNavbarContents: React.FC<
+    HiddenSectionNavbarContentsProps
+> = ({ onBack }) => (
+    <HorizontalFlex
+        gap={"24px"}
+        sx={{
+            width: "100%",
+            background: (theme) => theme.palette.background.default,
+        }}
+    >
+        <IconButton onClick={onBack}>
+            <ArrowBack />
+        </IconButton>
+        <FlexWrapper>
+            <Typography>{t("HIDDEN")}</Typography>
+        </FlexWrapper>
+    </HorizontalFlex>
+);
 
 interface SearchResultSummaryHeaderProps {
     searchResultSummary: SearchResultSummary;
