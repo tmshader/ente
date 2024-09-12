@@ -4,10 +4,18 @@
  */
 
 import type { Location } from "@/base/types";
+import type { Collection } from "@/media/collection";
 import { FileType } from "@/media/file-type";
-import type { MLStatus } from "@/new/photos/services/ml";
 import type { EnteFile } from "@/new/photos/types/file";
 import type { LocationTag } from "../user-entity";
+
+/**
+ * The base data over which we should search.
+ */
+export interface SearchableData {
+    collections: Collection[];
+    files: EnteFile[];
+}
 
 export interface DateSearchResult {
     components: SearchDateComponents;
@@ -106,7 +114,6 @@ export enum SuggestionType {
     COLLECTION = "COLLECTION",
     FILE_NAME = "FILE_NAME",
     PERSON = "PERSON",
-    INDEX_STATUS = "INDEX_STATUS",
     FILE_CAPTION = "FILE_CAPTION",
     FILE_TYPE = "FILE_TYPE",
     CLIP = "CLIP",
@@ -120,15 +127,14 @@ export interface Suggestion {
         | SearchDateComponents
         | number[]
         | SearchPerson
-        | MLStatus
         | LocationTag
         | City
         | FileType
         | ClipSearchScores;
-    hide?: boolean;
 }
 
 export interface SearchQuery {
+    suggestion?: SearchSuggestion;
     date?: SearchDateComponents;
     location?: LocationTag;
     city?: City;
@@ -144,8 +150,23 @@ export interface SearchResultSummary {
     fileCount: number;
 }
 
+export type SearchSuggestion = { label: string } & (
+    | { type: "collection"; collectionID: number }
+    | { type: "files"; fileIDs: number[] }
+    | { type: "fileType"; fileType: FileType }
+    | { type: "date"; dateComponents: SearchDateComponents }
+    | { type: "location"; locationTag: LocationTag }
+    | { type: "city"; city: City }
+    | { type: "clip"; clipScoreForFileID: Map<number, number> }
+    | { type: "cgroup"; cgroup: SearchPerson }
+);
+
 /**
  * An option shown in the the search bar's select dropdown.
+ *
+ * The option includes essential data that is necessary to show a corresponding
+ * entry in the dropdown. If the user selects the option, then we will re-run
+ * the search, using the data to filter the list of files shown to the user.
  */
 export interface SearchOption extends Suggestion {
     fileCount: number;
