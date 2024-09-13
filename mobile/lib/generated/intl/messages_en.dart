@@ -143,6 +143,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m45(toEmail) => "Please send the logs to \n${toEmail}";
 
+  static String m73(folderName) => "Processing ${folderName}...";
+
   static String m46(storeName) => "Rate us on ${storeName}";
 
   static String m47(storageInGB) =>
@@ -938,6 +940,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Loading your photos..."),
         "loadingModel":
             MessageLookupByLibrary.simpleMessage("Downloading models..."),
+        "loadingYourPhotos":
+            MessageLookupByLibrary.simpleMessage("Loading your photos..."),
         "localGallery": MessageLookupByLibrary.simpleMessage("Local gallery"),
         "localSyncErrorMessage": MessageLookupByLibrary.simpleMessage(
             "Looks like something went wrong since local photos sync is taking more time than expected. Please reach out to our support team"),
@@ -1010,6 +1014,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "moments": MessageLookupByLibrary.simpleMessage("Moments"),
         "monthly": MessageLookupByLibrary.simpleMessage("Monthly"),
         "moreDetails": MessageLookupByLibrary.simpleMessage("More details"),
+        "mostRecent": MessageLookupByLibrary.simpleMessage("Most recent"),
+        "mostRelevant": MessageLookupByLibrary.simpleMessage("Most relevant"),
         "moveItem": m37,
         "moveToAlbum": MessageLookupByLibrary.simpleMessage("Move to album"),
         "moveToHiddenAlbum":
@@ -1180,6 +1186,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Private backups"),
         "privateSharing":
             MessageLookupByLibrary.simpleMessage("Private sharing"),
+        "processingImport": m73,
         "publicLinkCreated":
             MessageLookupByLibrary.simpleMessage("Public link created"),
         "publicLinkEnabled":
@@ -1458,6 +1465,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "sorryWeCouldNotGenerateSecureKeysOnThisDevicennplease":
             MessageLookupByLibrary.simpleMessage(
                 "Sorry, we could not generate secure keys on this device.\n\nplease sign up from a different device."),
+        "sort": MessageLookupByLibrary.simpleMessage("Sort"),
         "sortAlbumsBy": MessageLookupByLibrary.simpleMessage("Sort by"),
         "sortNewestFirst": MessageLookupByLibrary.simpleMessage("Newest first"),
         "sortOldestFirst": MessageLookupByLibrary.simpleMessage("Oldest first"),

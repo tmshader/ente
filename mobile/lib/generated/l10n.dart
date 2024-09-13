@@ -9534,6 +9534,56 @@ class S {
       args: [],
     );
   }
+
+  /// `Sort`
+  String get sort {
+    return Intl.message(
+      'Sort',
+      name: 'sort',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Most recent`
+  String get mostRecent {
+    return Intl.message(
+      'Most recent',
+      name: 'mostRecent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Most relevant`
+  String get mostRelevant {
+    return Intl.message(
+      'Most relevant',
+      name: 'mostRelevant',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Loading your photos...`
+  String get loadingYourPhotos {
+    return Intl.message(
+      'Loading your photos...',
+      name: 'loadingYourPhotos',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Processing {folderName}...`
+  String processingImport(Object folderName) {
+    return Intl.message(
+      'Processing $folderName...',
+      name: 'processingImport',
+      desc: '',
+      args: [folderName],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
