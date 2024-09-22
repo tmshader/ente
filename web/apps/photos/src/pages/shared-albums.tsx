@@ -3,6 +3,10 @@ import { sharedCryptoWorker } from "@/base/crypto";
 import { useIsMobileWidth, useIsTouchscreen } from "@/base/hooks";
 import log from "@/base/log";
 import type { Collection } from "@/media/collection";
+import {
+    GalleryItemsHeaderAdapter,
+    GalleryItemsSummary,
+} from "@/new/photos/components/Gallery/ListHeader";
 import downloadManager from "@/new/photos/services/download";
 import { EnteFile } from "@/new/photos/types/file";
 import { mergeMetadata } from "@/new/photos/utils/file";
@@ -32,8 +36,6 @@ import type { ButtonProps, IconButtonProps } from "@mui/material";
 import { Box, Button, IconButton, Stack, Tooltip } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import bs58 from "bs58";
-import { CollectionInfo } from "components/Collections/CollectionInfo";
-import { CollectionInfoBarWrapper } from "components/Collections/styledComponents";
 import { EnteLogo } from "components/EnteLogo";
 import {
     FilesDownloadProgress,
@@ -304,9 +306,9 @@ export default function PublicCollectionGallery() {
             publicFiles &&
             setPhotoListHeader({
                 item: (
-                    <CollectionInfoBarWrapper>
+                    <GalleryItemsHeaderAdapter>
                         <SpaceBetweenFlex>
-                            <CollectionInfo
+                            <GalleryItemsSummary
                                 name={publicCollection.name}
                                 fileCount={publicFiles.length}
                             />
@@ -319,14 +321,14 @@ export default function PublicCollectionGallery() {
                                         startIcon={<FileDownloadOutlinedIcon />}
                                         onClick={downloadAllFiles}
                                     >
-                                        {t("DOWNLOAD_COLLECTION")}
+                                        {t("download_album")}
                                     </OverflowMenuOption>
                                 </OverflowMenu>
                             ) : (
                                 <div />
                             )}
                         </SpaceBetweenFlex>
-                    </CollectionInfoBarWrapper>
+                    </GalleryItemsHeaderAdapter>
                 ),
                 itemType: ITEM_TYPE.HEADER,
                 height: 68,
@@ -724,7 +726,7 @@ const SelectedFileOptions: React.FC<SelectedFileOptionsProps> = ({
                 </Box>
             </FluidContainer>
             <Stack spacing={2} direction="row" mr={2}>
-                <Tooltip title={t("DOWNLOAD")}>
+                <Tooltip title={t("download")}>
                     <IconButton onClick={downloadFilesHelper}>
                         <DownloadIcon />
                     </IconButton>

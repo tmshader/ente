@@ -1,4 +1,8 @@
 import type { Collection } from "@/media/collection";
+import type {
+    CollectionSummaries,
+    CollectionSummary,
+} from "@/new/photos/types/collection";
 import { FlexWrapper } from "@ente/shared/components/Container";
 import DialogTitleWithCloseButton from "@ente/shared/components/DialogBox/TitleWithCloseButton";
 import { DialogContent, useMediaQuery } from "@mui/material";
@@ -6,11 +10,6 @@ import { AllCollectionDialog } from "components/Collections/AllCollections/dialo
 import { t } from "i18next";
 import { useEffect, useState } from "react";
 import { createUnCategorizedCollection } from "services/collectionService";
-import {
-    CollectionSummaries,
-    CollectionSummary,
-    CollectionSummaryType,
-} from "types/collection";
 import { CollectionSelectorIntent } from "types/gallery";
 import {
     COLLECTION_SORT_ORDER,
@@ -65,14 +64,14 @@ function CollectionSelector({
                     ) {
                         return (
                             isMoveToAllowedCollection(type) ||
-                            type === CollectionSummaryType.uncategorized
+                            type == "uncategorized"
                         );
                     } else if (
                         attributes.intent === CollectionSelectorIntent.restore
                     ) {
                         return (
                             isMoveToAllowedCollection(type) ||
-                            type === CollectionSummaryType.uncategorized
+                            type == "uncategorized"
                         );
                     } else {
                         return isMoveToAllowedCollection(type);
@@ -128,17 +127,17 @@ function CollectionSelector({
         >
             <DialogTitleWithCloseButton onClose={onUserTriggeredClose}>
                 {attributes.intent === CollectionSelectorIntent.upload
-                    ? t("UPLOAD_TO_COLLECTION")
+                    ? t("upload_to_album")
                     : attributes.intent === CollectionSelectorIntent.add
-                      ? t("ADD_TO_COLLECTION")
+                      ? t("add_to_album")
                       : attributes.intent === CollectionSelectorIntent.move
-                        ? t("MOVE_TO_COLLECTION")
+                        ? t("move_to_album")
                         : attributes.intent === CollectionSelectorIntent.restore
-                          ? t("RESTORE_TO_COLLECTION")
+                          ? t("restore_to_album")
                           : attributes.intent ===
                               CollectionSelectorIntent.unhide
-                            ? t("UNHIDE_TO_COLLECTION")
-                            : t("SELECT_COLLECTION")}
+                            ? t("unhide_to_album")
+                            : t("select_album")}
             </DialogTitleWithCloseButton>
             <DialogContent sx={{ "&&&": { padding: 0 } }}>
                 <FlexWrapper flexWrap="wrap" gap={"4px"} padding={"16px"}>
