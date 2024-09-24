@@ -3,6 +3,7 @@ import { NavbarBase } from "@/base/components/Navbar";
 import { useIsMobileWidth } from "@/base/hooks";
 import log from "@/base/log";
 import type { Collection } from "@/media/collection";
+import type { GalleryBarMode } from "@/new/photos/components/Gallery/BarImpl";
 import {
     GalleryItemsHeaderAdapter,
     GalleryItemsSummary,
@@ -59,7 +60,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import type { ButtonProps, IconButtonProps } from "@mui/material";
 import { Box, Button, IconButton, Typography, styled } from "@mui/material";
 import AuthenticateUserModal from "components/AuthenticateUserModal";
-import { Collections, type GalleryBarMode } from "components/Collections";
+import { Collections } from "components/Collections";
 import CollectionNamer, {
     CollectionNamerAttributes,
 } from "components/Collections/CollectionNamer";
@@ -878,18 +879,6 @@ export default function Gallery() {
                         selected.collectionID,
                     );
                 }
-                if (selected?.ownCount === filteredData?.length) {
-                    if (
-                        ops === COLLECTION_OPS_TYPE.REMOVE ||
-                        ops === COLLECTION_OPS_TYPE.RESTORE ||
-                        ops === COLLECTION_OPS_TYPE.MOVE
-                    ) {
-                        // redirect to all section when no items are left in the current collection.
-                        setActiveCollectionID(ALL_SECTION);
-                    } else if (ops === COLLECTION_OPS_TYPE.UNHIDE) {
-                        exitHiddenSection();
-                    }
-                }
                 clearSelection();
                 await syncWithRemote(false, true);
             } catch (e) {
@@ -926,14 +915,6 @@ export default function Gallery() {
                     setFixCreationTimeAttributes,
                     setFilesDownloadProgressAttributesCreator,
                 );
-            }
-            if (
-                selected?.ownCount === filteredData?.length &&
-                ops !== FILE_OPS_TYPE.ARCHIVE &&
-                ops !== FILE_OPS_TYPE.DOWNLOAD &&
-                ops !== FILE_OPS_TYPE.FIX_TIME
-            ) {
-                setActiveCollectionID(ALL_SECTION);
             }
             clearSelection();
             await syncWithRemote(false, true);
@@ -1034,8 +1015,10 @@ export default function Gallery() {
         setActiveCollectionID(ALL_SECTION);
     };
 
-    const handleSelectPerson = (person: Person) => {
-        setActivePerson(person);
+    const handleSelectPerson = (person: Person | undefined) => {
+        // TODO-Cluster: The person bar does not have an "all" mode, use the
+        // first person.
+        setActivePerson(person || people[0]);
         setBarMode("people");
     };
 
