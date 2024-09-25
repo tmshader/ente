@@ -1,14 +1,15 @@
 import type { Collection } from "@/media/collection";
+import { PersonListHeader } from "@/new/photos/components/Gallery";
 import {
     GalleryBarImpl,
-    type GalleryBarMode,
+    type GalleryBarImplProps,
 } from "@/new/photos/components/Gallery/BarImpl";
-import type { Person } from "@/new/photos/services/ml/cgroups";
 import {
     collectionsSortBy,
     type CollectionsSortBy,
     type CollectionSummaries,
 } from "@/new/photos/types/collection";
+import { ensure } from "@/utils/ensure";
 import { includes } from "@/utils/type-guards";
 import {
     getData,
@@ -16,7 +17,6 @@ import {
     removeData,
 } from "@ente/shared/storage/localStorage";
 import AllCollections from "components/Collections/AllCollections";
-import CollectionInfoWithOptions from "components/Collections/CollectionInfoWithOptions";
 import { SetCollectionNamerAttributes } from "components/Collections/CollectionNamer";
 import CollectionShare from "components/Collections/CollectionShare";
 import { ITEM_TYPE, TimeStampListItem } from "components/PhotoList";
@@ -35,32 +35,53 @@ import {
     isFilesDownloadCompleted,
 } from "../FilesDownloadProgress";
 import { AlbumCastDialog } from "./AlbumCastDialog";
+import { CollectionHeader } from "./CollectionHeader";
 
-interface CollectionsProps {
-    /** `true` if the bar should be hidden altogether. */
+type CollectionsProps = Omit<
+    GalleryBarImplProps,
+    | "collectionSummaries"
+    | "hiddenCollectionSummaries"
+    | "onSelectCollectionID"
+    | "collectionsSortBy"
+    | "onChangeCollectionsSortBy"
+    | "onShowAllCollections"
+> & {
+    /**
+     * When `true`, the bar is be hidden altogether.
+     */
     shouldHide: boolean;
-    /** otherwise show stuff that belongs to this mode. */
-    mode: GalleryBarMode;
-    setMode: (mode: GalleryBarMode) => void;
     collectionSummaries: CollectionSummaries;
     activeCollection: Collection;
-    activeCollectionID?: number;
-    setActiveCollectionID: (id?: number) => void;
+    setActiveCollectionID: (collectionID: number) => void;
     hiddenCollectionSummaries: CollectionSummaries;
-    people: Person[];
-    activePerson: Person | undefined;
-    onSelectPerson: (person: Person) => void;
     setCollectionNamerAttributes: SetCollectionNamerAttributes;
     setPhotoListHeader: (value: TimeStampListItem) => void;
     filesDownloadProgressAttributesList: FilesDownloadProgressAttributes[];
     setFilesDownloadProgressAttributesCreator: SetFilesDownloadProgressAttributesCreator;
-}
+};
 
-// TODO-Cluster Rename me to GalleryBar and subsume GalleryBarImpl
-export const Collections: React.FC<CollectionsProps> = ({
+/**
+ * The gallery bar, the header for the list items, and state for any associated
+ * dialogs that might be triggered by actions on either the bar or the header..
+ *
+ * This component manages the sticky horizontally scrollable bar shown at the
+ * top of the gallery, AND the non-sticky header shown below the bar, at the top
+ * of the actual list of items.
+ *
+ * These are disparate views - indeed, the list header is not even a child of
+ * this component but is instead proxied via {@link setPhotoListHeader}. Still,
+ * having this intermediate wrapper component allows us to move some of the
+ * common concerns shared by both the gallery bar and list header (e.g. some
+ * dialogs that can be invoked from both places) into this file instead of
+ * cluttering the already big gallery component.
+ *
+ * TODO: Once the gallery code is better responsibilitied out, consider moving
+ * this code back inline into the gallery.
+ */
+export const GalleryBarAndListHeader: React.FC<CollectionsProps> = ({
     shouldHide,
     mode,
-    setMode,
+    onChangeMode,
     collectionSummaries,
     activeCollection,
     activeCollectionID,
@@ -123,26 +144,27 @@ export const Collections: React.FC<CollectionsProps> = ({
         if (shouldHide) return;
 
         setPhotoListHeader({
-            item: (
-                <CollectionInfoWithOptions
-                    collectionSummary={toShowCollectionSummaries.get(
-                        activeCollectionID,
-                    )}
-                    activeCollection={activeCollection}
-                    setCollectionNamerAttributes={setCollectionNamerAttributes}
-                    showCollectionShareModal={() =>
-                        setOpenCollectionShareView(true)
-                    }
-                    setFilesDownloadProgressAttributesCreator={
-                        setFilesDownloadProgressAttributesCreator
-                    }
-                    isActiveCollectionDownloadInProgress={
-                        isActiveCollectionDownloadInProgress
-                    }
-                    setActiveCollectionID={setActiveCollectionID}
-                    setShowAlbumCastDialog={setOpenAlbumCastDialog}
-                />
-            ),
+            item:
+                mode != "people" ? (
+                    <CollectionHeader
+                        {...{
+                            activeCollection,
+                            setActiveCollectionID,
+                            setCollectionNamerAttributes,
+                            setFilesDownloadProgressAttributesCreator,
+                            isActiveCollectionDownloadInProgress,
+                        }}
+                        collectionSummary={toShowCollectionSummaries.get(
+                            activeCollectionID,
+                        )}
+                        onCollectionShare={() =>
+                            setOpenCollectionShareView(true)
+                        }
+                        onCollectionCast={() => setOpenAlbumCastDialog(true)}
+                    />
+                ) : (
+                    <PersonListHeader person={ensure(activePerson)} />
+                ),
             itemType: ITEM_TYPE.HEADER,
             height: 68,
         });
@@ -165,14 +187,14 @@ export const Collections: React.FC<CollectionsProps> = ({
             <GalleryBarImpl
                 {...{
                     mode,
-                    setMode,
+                    onChangeMode,
                     activeCollectionID,
-                    setActiveCollectionID,
                     people,
                     activePerson,
                     onSelectPerson,
                     collectionsSortBy,
                 }}
+                onSelectCollectionID={setActiveCollectionID}
                 onChangeCollectionsSortBy={setCollectionsSortBy}
                 onShowAllCollections={() => setOpenAllCollectionDialog(true)}
                 collectionSummaries={sortedCollectionSummaries.filter((x) =>
@@ -186,7 +208,7 @@ export const Collections: React.FC<CollectionsProps> = ({
                 collectionSummaries={sortedCollectionSummaries.filter(
                     (x) => !isSystemCollection(x.type),
                 )}
-                setActiveCollectionID={setActiveCollectionID}
+                onSelectCollectionID={setActiveCollectionID}
                 onChangeCollectionsSortBy={setCollectionsSortBy}
                 collectionsSortBy={collectionsSortBy}
                 isInHiddenSection={mode == "hidden-albums"}
