@@ -1,9 +1,9 @@
 import type { Collection } from "@/media/collection";
-import { PersonListHeader } from "@/new/photos/components/Gallery";
 import {
     GalleryBarImpl,
     type GalleryBarImplProps,
 } from "@/new/photos/components/Gallery/BarImpl";
+import { PeopleHeader } from "@/new/photos/components/Gallery/PeopleHeader";
 import {
     collectionsSortBy,
     type CollectionsSortBy,
@@ -20,7 +20,14 @@ import AllCollections from "components/Collections/AllCollections";
 import { SetCollectionNamerAttributes } from "components/Collections/CollectionNamer";
 import CollectionShare from "components/Collections/CollectionShare";
 import { ITEM_TYPE, TimeStampListItem } from "components/PhotoList";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { AppContext } from "pages/_app";
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import { sortCollectionSummaries } from "services/collectionService";
 import { SetFilesDownloadProgressAttributesCreator } from "types/gallery";
 import {
@@ -88,13 +95,15 @@ export const GalleryBarAndListHeader: React.FC<CollectionsProps> = ({
     setActiveCollectionID,
     hiddenCollectionSummaries,
     people,
-    activePerson,
+    activePersonID,
     onSelectPerson,
     setCollectionNamerAttributes,
     setPhotoListHeader,
     filesDownloadProgressAttributesList,
     setFilesDownloadProgressAttributesCreator,
 }) => {
+    const appContext = useContext(AppContext);
+
     const [openAllCollectionDialog, setOpenAllCollectionDialog] =
         useState(false);
     const [openCollectionShareView, setOpenCollectionShareView] =
@@ -163,7 +172,13 @@ export const GalleryBarAndListHeader: React.FC<CollectionsProps> = ({
                         onCollectionCast={() => setOpenAlbumCastDialog(true)}
                     />
                 ) : (
-                    <PersonListHeader person={ensure(activePerson)} />
+                    <PeopleHeader
+                        person={ensure(
+                            people.find((p) => p.id == activePersonID) ??
+                                people[0],
+                        )}
+                        {...{ onSelectPerson, appContext }}
+                    />
                 ),
             itemType: ITEM_TYPE.HEADER,
             height: 68,
@@ -175,7 +190,7 @@ export const GalleryBarAndListHeader: React.FC<CollectionsProps> = ({
         activeCollectionID,
         isActiveCollectionDownloadInProgress,
         people,
-        activePerson,
+        activePersonID,
     ]);
 
     if (shouldBeHidden) {
@@ -190,7 +205,7 @@ export const GalleryBarAndListHeader: React.FC<CollectionsProps> = ({
                     onChangeMode,
                     activeCollectionID,
                     people,
-                    activePerson,
+                    activePersonID,
                     onSelectPerson,
                     collectionsSortBy,
                 }}

@@ -7,6 +7,7 @@ import { blobCache } from "@/base/blob-cache";
 import { ensureElectron } from "@/base/electron";
 import { isDevBuild } from "@/base/env";
 import log from "@/base/log";
+import { masterKeyFromSession } from "@/base/session-store";
 import type { Electron } from "@/base/types/ipc";
 import { ComlinkWorker } from "@/base/worker/comlink-worker";
 import { FileType } from "@/media/file-type";
@@ -18,14 +19,17 @@ import { isInternalUser } from "../feature-flags";
 import { getRemoteFlag, updateRemoteFlag } from "../remote-store";
 import { setSearchPeople } from "../search";
 import type { UploadItem } from "../upload/types";
+import {
+    addUserEntity,
+    pullUserEntities,
+    updateOrCreateUserEntities,
+    type CGroup,
+} from "../user-entity";
+import { deleteUserEntity } from "../user-entity/remote";
+import type { FaceCluster } from "./cluster";
 import { regenerateFaceCrops } from "./crop";
 import { clearMLDB, getFaceIndex, getIndexableAndIndexedCounts } from "./db";
-import {
-    pullCGroups,
-    reconstructPeople,
-    type NamedPerson,
-    type Person,
-} from "./people";
+import { reconstructPeople, type Person } from "./people";
 import { MLWorker } from "./worker";
 import type { CLIPMatches } from "./worker-types";
 
@@ -242,9 +246,7 @@ const mlLocalKey = "mlEnabled";
  * The remote status is tracked with a separate {@link isMLEnabledRemote} flag
  * that is synced with remote.
  */
-const isMLEnabledLocal = () => {
-    return localStorage.getItem(mlLocalKey) == "1";
-};
+const isMLEnabledLocal = () => localStorage.getItem(mlLocalKey) == "1";
 
 /**
  * Update the (locally stored) value of {@link isMLEnabledLocal}.
@@ -319,14 +321,15 @@ export const mlSync = async () => {
     // Fetch indexes, or index locally if needed.
     await w.index();
 
-    // Fetch existing cgroups from remote.
-    await pullCGroups();
-
-    // Generate or update local clusters.
     // TODO-Cluster
-    // Warning - this is heavily WIP
-    if (process.env.NEXT_PUBLIC_ENTE_WIP_CL_AUTO) {
-        await w.clusterFaces();
+    if (await wipClusterEnable()) {
+        const masterKey = await masterKeyFromSession();
+
+        // Fetch existing cgroups from remote.
+        await pullUserEntities("cgroup", masterKey);
+
+        // Generate or update local clusters.
+        await w.clusterFaces(masterKey);
     }
 
     await updatePeople();
@@ -365,16 +368,6 @@ export const indexNewUpload = (enteFile: EnteFile, uploadItem: UploadItem) => {
 export const wipClusterEnable = async (): Promise<boolean> =>
     (!!process.env.NEXT_PUBLIC_ENTE_WIP_CL && isDevBuild) ||
     (await isInternalUser());
-
-export const wipCluster = async () => {
-    if (!(await wipClusterEnable())) throw new Error("Not implemented");
-
-    triggerStatusUpdate();
-
-    await worker().then((w) => w.clusterFaces());
-
-    triggerStatusUpdate();
-};
 
 export type MLStatus =
     | { phase: "disabled" /* The ML remote flag is off */ }
@@ -565,7 +558,11 @@ const updatePeople = async () => {
     const people = await reconstructPeople();
 
     // Notify the search subsystem of the update (search only uses named ones).
-    setSearchPeople(people.filter((p): p is NamedPerson => !!p.name));
+    setSearchPeople(
+        people
+            .map((p) => (p.name ? { name: p.name, person: p } : undefined))
+            .filter((p) => !!p),
+    );
 
     // Update our in-memory list of people.
     setPeopleSnapshot(people);
@@ -639,4 +636,53 @@ const regenerateFaceCropsIfNeeded = async (enteFile: EnteFile) => {
     for (const id of faceIDs) if (!(await cache.has(id))) needsRegen = true;
 
     if (needsRegen) await regenerateFaceCrops(enteFile, index);
+};
+
+/**
+ * Convert a cluster into a named person, updating both remote and local state.
+ *
+ * @param name Name of the new cgroup user entity.
+ *
+ * @param cluster The underlying cluster to use to populate the cgroup.
+ */
+export const addPerson = async (name: string, cluster: FaceCluster) => {
+    const masterKey = await masterKeyFromSession();
+    await addUserEntity(
+        "cgroup",
+        {
+            name,
+            assigned: [cluster],
+            isHidden: false,
+        },
+        masterKey,
+    );
+    return mlSync();
+};
+
+/**
+ * Rename an existing named person.
+ *
+ * @param name The new name to use.
+ *
+ * @param cgroup The existing cgroup underlying the person. This is the (remote)
+ * user entity that will get updated.
+ */
+export const renamePerson = async (name: string, cgroup: CGroup) => {
+    const masterKey = await masterKeyFromSession();
+    await updateOrCreateUserEntities(
+        "cgroup",
+        [{ ...cgroup, data: { ...cgroup.data, name } }],
+        masterKey,
+    );
+    return mlSync();
+};
+
+/**
+ * Delete an existing person.
+ *
+ * @param cgroup The existing cgroup underlying the person.
+ */
+export const deletePerson = async ({ id }: CGroup) => {
+    await deleteUserEntity(id);
+    return mlSync();
 };
