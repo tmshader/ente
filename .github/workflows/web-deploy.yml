@@ -51,7 +51,7 @@ jobs:
               with:
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  command: pages deploy --project-name=ente --commit-dirty=true --branch=deploy/photos web/apps/photos/out
+                  command: pages deploy --project-name=${{ secrets.CLOUDFLARE_PROJECT }} --commit-dirty=true --branch=deploy/photos web/apps/photos/out
 
             - name: Build accounts
               run: yarn build:accounts
@@ -61,7 +61,7 @@ jobs:
               with:
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  command: pages deploy --project-name=ente --commit-dirty=true --branch=deploy/accounts web/apps/accounts/out
+                  command: pages deploy --project-name=${{ secrets.CLOUDFLARE_PROJECT }} --commit-dirty=true --branch=deploy/accounts web/apps/accounts/out
 
             - name: Build auth
               run: yarn build:auth
@@ -71,7 +71,7 @@ jobs:
               with:
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  command: pages deploy --project-name=ente --commit-dirty=true --branch=deploy/auth web/apps/auth/out
+                  command: pages deploy --project-name=${{ secrets.CLOUDFLARE_PROJECT }} --commit-dirty=true --branch=deploy/auth web/apps/auth/out
 
             - name: Build cast
               run: yarn build:cast
@@ -81,7 +81,7 @@ jobs:
               with:
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  command: pages deploy --project-name=ente --commit-dirty=true --branch=deploy/cast web/apps/cast/out
+                  command: pages deploy --project-name=${{ secrets.CLOUDFLARE_PROJECT }} --commit-dirty=true --branch=deploy/cast web/apps/cast/out
 
             - name: Build payments
               run: yarn build:payments
@@ -91,4 +91,4 @@ jobs:
               with:
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  command: pages deploy --project-name=ente --commit-dirty=true --branch=deploy/payments web/apps/payments/dist
+                  command: pages deploy --project-name=${{ secrets.CLOUDFLARE_PROJECT }} --commit-dirty=true --branch=deploy/payments web/apps/payments/dist
