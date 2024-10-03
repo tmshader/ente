@@ -19,6 +19,12 @@ on:
     # Also allow manually running the workflow
     workflow_dispatch:
 
+env:
+  NEXT_PUBLIC_ENTE_ENDPOINT: ${{ vars.ENDPOINT }}
+  NEXT_PUBLIC_ENTE_ACCOUNTS_URL: ${{ vars.ACCOUNTS_URL }}
+  NEXT_PUBLIC_ENTE_PAYMENTS_URL: ${{ vars.PAYMENTS_URL }}
+  NEXT_PUBLIC_ENTE_ALBUMS_ENDPOINT: ${{ vars.ALBUMS_ENDPOINT }}
+
 jobs:
     deploy:
         runs-on: ubuntu-latest
