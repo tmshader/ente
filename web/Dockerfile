@@ -1,11 +1,11 @@
-FROM node:20-bookworm-slim as ente-builder
+FROM node:20-bookworm as ente-builder
 
 WORKDIR /app
 
 RUN apt update && apt install -y ca-certificates
 
 COPY . .
-RUN yarn install
+RUN yarn install --network-timeout 1000000
 
 ENV NEXT_PUBLIC_ENTE_ENDPOINT=DOCKER_RUNTIME_REPLACE_ENDPOINT
 ENV NEXT_PUBLIC_ENTE_ALBUMS_ENDPOINT=DOCKER_RUNTIME_REPLACE_ALBUMS_ENDPOINT
